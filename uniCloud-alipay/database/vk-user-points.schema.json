@@ -1,0 +1,63 @@
+{
+  "bsonType": "object",
+  "description": "用户积分表",
+  "required": ["user_id", "available_points"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "用户ID",
+      "title": "用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "total_points": {
+      "bsonType": "int",
+      "description": "总积分（历史累计获得的所有积分）",
+      "title": "总积分",
+      "defaultValue": 0
+    },
+    "available_points": {
+      "bsonType": "int",
+      "description": "可用积分（当前可以使用的积分）",
+      "title": "可用积分",
+      "defaultValue": 0
+    },
+    "frozen_points": {
+      "bsonType": "int",
+      "description": "冻结积分（暂时不可用的积分）",
+      "title": "冻结积分",
+      "defaultValue": 0
+    },
+    "consumed_points": {
+      "bsonType": "int",
+      "description": "已消耗积分（历史累计消耗的积分）",
+      "title": "已消耗积分",
+      "defaultValue": 0
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "_update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "title": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}
+

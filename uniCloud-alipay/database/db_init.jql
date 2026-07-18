@@ -1,0 +1,77 @@
+// 初始化产品表数据
+// 在 uniCloud web控制台的 数据库 -> DB Schema 中，找到 vk-products 表
+// 点击 "数据" 标签，然后点击 "导入" 按钮，选择此文件导入
+
+const db = uniCloud.database();
+
+// 清空现有数据（可选，首次运行可以注释掉）
+// db.collection('vk-products').remove({});
+
+// 插入初始产品数据
+db.collection('vk-products').add([
+  {
+    "product_id": "ai-script-generator",
+    "product_name": "AI生成话术",
+    "product_type": "software",
+    "base_price": 500,
+    "machine_unit": 1,
+    "description": "AI智能生成营销话术，提升转化率",
+    "icon": "el-icon-chat-dot-round",
+    "status": 1,
+    "sort": 10,
+    "valid_days_options": [
+      {"days": 30, "label": "月卡(30天)", "discount": 1},
+      {"days": 90, "label": "季卡(90天)", "discount": 0.9},
+      {"days": 365, "label": "年卡(365天)", "discount": 0.8}
+    ]
+  },
+  {
+    "product_id": "jd-screen-helper",
+    "product_name": "京东投屏助手",
+    "product_type": "plugin",
+    "base_price": 50,
+    "machine_unit": 10,
+    "description": "京东商品投屏展示助手",
+    "icon": "el-icon-monitor",
+    "status": 1,
+    "sort": 20,
+    "valid_days_options": [
+      {"days": 30, "label": "月卡(30天)", "discount": 1},
+      {"days": 90, "label": "季卡(90天)", "discount": 0.9},
+      {"days": 365, "label": "年卡(365天)", "discount": 0.8}
+    ]
+  },
+  {
+    "product_id": "general-software",
+    "product_name": "通用软件",
+    "product_type": "software",
+    "base_price": 50,
+    "machine_unit": 1,
+    "description": "通用型软件授权",
+    "icon": "el-icon-s-platform",
+    "status": 1,
+    "sort": 30,
+    "valid_days_options": [
+      {"days": 30, "label": "月卡(30天)", "discount": 1},
+      {"days": 90, "label": "季卡(90天)", "discount": 0.9},
+      {"days": 365, "label": "年卡(365天)", "discount": 0.8}
+    ]
+  },
+  {
+    "product_id": "general-plugin",
+    "product_name": "通用浏览器插件",
+    "product_type": "plugin",
+    "base_price": 50,
+    "machine_unit": 10,
+    "description": "通用型浏览器插件授权",
+    "icon": "el-icon-link",
+    "status": 1,
+    "sort": 40,
+    "valid_days_options": [
+      {"days": 30, "label": "月卡(30天)", "discount": 1},
+      {"days": 90, "label": "季卡(90天)", "discount": 0.9},
+      {"days": 365, "label": "年卡(365天)", "discount": 0.8}
+    ]
+  }
+]);
+

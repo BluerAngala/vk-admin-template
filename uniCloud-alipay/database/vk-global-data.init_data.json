@@ -1,0 +1,44 @@
+{
+  "data": [
+    {
+      "key": "invite_rebate_config",
+      "value": {
+        "enabled": true,
+        "tiers": [
+          { "level": 1, "threshold": 1000, "rate": 10 },
+          { "level": 2, "threshold": 3000, "rate": 20 },
+          { "level": 3, "threshold": 5000, "rate": 30 },
+          { "level": 4, "threshold": 8000, "rate": 50 }
+        ]
+      },
+      "_add_time": { "$date": "2024-01-01T00:00:00.000Z" }
+    },
+    {
+      "key": "announcement",
+      "value": {
+        "enabled": true,
+        "title": "🎉 重大更新！邀请返利机制上线 & JD直播助手PLUS发布",
+        "subtitle": "邀请好友享高额返利，JD直播助手PLUS助力直播带货",
+        "changelog": [
+          {
+            "product_id": "",
+            "product_name": "JD直播助手PLUS",
+            "version": "1.0.0",
+            "date": "2024-12-13",
+            "download_url": "",
+            "items": "✨ 全新上线JD直播助手PLUS\n🎯 支持京东直播间自动化操作\n📊 实时数据监控与分析\n🚀 高效稳定，助力直播带货"
+          },
+          {
+            "product_id": "",
+            "product_name": "系统更新",
+            "version": "",
+            "date": "2024-12-13",
+            "download_url": "",
+            "items": "🎁 新增邀请返利机制\n💰 邀请好友消费，享10%-50%积分返利\n📈 好友消费越多，返利比例越高\n🔒 按实际消费积分计算，安全防刷"
+          }
+        ]
+      },
+      "_add_time": { "$date": "2024-12-13T00:00:00.000Z" }
+    }
+  ]
+}

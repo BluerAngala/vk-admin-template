@@ -1,0 +1,75 @@
+{
+  "bsonType": "object",
+  "required": ["ticket_id", "content", "user_id"],
+  "permission": {
+    "read": "true",
+    "create": "auth.uid != null",
+    "update": "false",
+    "delete": "'admin' in auth.role"
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "ticket_id": {
+      "bsonType": "string",
+      "description": "关联工单ID",
+      "title": "工单ID",
+      "foreignKey": "vk-tickets._id"
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "回复内容",
+      "title": "内容"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "回复用户ID",
+      "title": "回复用户",
+      "foreignKey": "uni-id-users._id"
+    },
+    "user_name": {
+      "bsonType": "string",
+      "description": "回复用户名称",
+      "title": "回复用户名称"
+    },
+    "is_admin": {
+      "bsonType": "bool",
+      "description": "是否管理员回复",
+      "title": "管理员回复",
+      "defaultValue": false
+    },
+    "attachments": {
+      "bsonType": "array",
+      "description": "附件(图片/视频)",
+      "title": "附件",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "type": {
+            "bsonType": "string",
+            "description": "附件类型: image/video",
+            "title": "类型"
+          },
+          "url": {
+            "bsonType": "string",
+            "description": "文件URL",
+            "title": "文件地址"
+          },
+          "name": {
+            "bsonType": "string",
+            "description": "文件名",
+            "title": "文件名"
+          }
+        }
+      }
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

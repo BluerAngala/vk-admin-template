@@ -1,0 +1,96 @@
+{
+  "bsonType": "object",
+  "required": ["title", "content", "user_id"],
+  "permission": {
+    "read": "doc.user_id == auth.uid || 'admin' in auth.role",
+    "create": "auth.uid != null",
+    "update": "doc.user_id == auth.uid || 'admin' in auth.role",
+    "delete": "'admin' in auth.role"
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "title": {
+      "bsonType": "string",
+      "description": "工单标题",
+      "title": "标题",
+      "trim": "both"
+    },
+    "content": {
+      "bsonType": "string",
+      "description": "工单内容",
+      "title": "内容"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "工单类型",
+      "title": "类型",
+      "enum": ["bug", "feature", "question", "complaint", "other"],
+      "defaultValue": "question"
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "工单状态",
+      "title": "状态",
+      "enum": ["pending", "processing", "resolved", "closed"],
+      "defaultValue": "pending"
+    },
+    "priority": {
+      "bsonType": "string",
+      "description": "优先级",
+      "title": "优先级",
+      "enum": ["low", "normal", "high", "urgent"],
+      "defaultValue": "normal"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "创建用户ID",
+      "title": "创建用户",
+      "foreignKey": "uni-id-users._id"
+    },
+    "user_name": {
+      "bsonType": "string",
+      "description": "创建用户名称",
+      "title": "创建用户名称"
+    },
+    "assignee_id": {
+      "bsonType": "string",
+      "description": "处理人ID",
+      "title": "处理人",
+      "foreignKey": "uni-id-users._id"
+    },
+    "assignee_name": {
+      "bsonType": "string",
+      "description": "处理人名称",
+      "title": "处理人名称"
+    },
+    "reply_count": {
+      "bsonType": "int",
+      "description": "回复数量",
+      "title": "回复数",
+      "defaultValue": 0
+    },
+    "last_reply_time": {
+      "bsonType": "timestamp",
+      "description": "最后回复时间",
+      "title": "最后回复时间"
+    },
+    "last_reply_content": {
+      "bsonType": "string",
+      "description": "最后回复内容",
+      "title": "最后回复内容"
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "_update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    }
+  }
+}

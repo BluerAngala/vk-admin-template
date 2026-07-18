@@ -1,0 +1,79 @@
+{
+  "bsonType": "object",
+  "description": "支付订单表",
+  "required": ["user_id", "trade_no", "status"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "用户ID",
+      "title": "用户ID"
+    },
+    "trade_no": {
+      "bsonType": "string",
+      "description": "支付平台订单号",
+      "title": "订单号"
+    },
+    "package_id": {
+      "bsonType": "int",
+      "description": "套餐ID",
+      "title": "套餐ID"
+    },
+    "package_name": {
+      "bsonType": "string",
+      "description": "套餐名称",
+      "title": "套餐名称"
+    },
+    "points": {
+      "bsonType": "int",
+      "description": "基础积分",
+      "title": "基础积分"
+    },
+    "bonus": {
+      "bsonType": "int",
+      "description": "赠送积分",
+      "title": "赠送积分",
+      "defaultValue": 0
+    },
+    "price": {
+      "bsonType": "number",
+      "description": "支付金额",
+      "title": "支付金额"
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "状态：pending-待支付，paid-已支付，expired-已过期",
+      "title": "状态",
+      "enum": [
+        { "value": "pending", "text": "待支付" },
+        { "value": "paid", "text": "已支付" },
+        { "value": "expired", "text": "已过期" }
+      ],
+      "defaultValue": "pending"
+    },
+    "expire_time": {
+      "bsonType": "timestamp",
+      "description": "过期时间",
+      "title": "过期时间"
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "title": "创建时间",
+      "forceDefaultValue": { "$env": "now" }
+    },
+    "_update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "title": "更新时间"
+    }
+  }
+}

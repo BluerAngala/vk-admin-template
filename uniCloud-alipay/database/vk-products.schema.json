@@ -1,0 +1,185 @@
+{
+  "bsonType": "object",
+  "required": ["product_id", "product_name", "product_type", "price_points", "price_months", "price_machines", "status"],
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "product_id": {
+      "bsonType": "string",
+      "title": "产品ID",
+      "description": "产品唯一标识",
+      "trim": "both"
+    },
+    "product_name": {
+      "bsonType": "string",
+      "title": "产品名称",
+      "description": "产品显示名称",
+      "trim": "both"
+    },
+    "product_type": {
+      "bsonType": "string",
+      "title": "产品类型",
+      "description": "software-软件, plugin-浏览器插件",
+      "enum": ["software", "plugin"],
+      "defaultValue": "software"
+    },
+    "product_image": {
+      "bsonType": "string",
+      "title": "产品图",
+      "description": "产品展示图片URL"
+    },
+    "download_url": {
+      "bsonType": "string",
+      "title": "下载地址",
+      "description": "产品下载链接"
+    },
+    "price_points": {
+      "bsonType": "int",
+      "title": "收费积分",
+      "description": "收费标准-积分数",
+      "minimum": 1,
+      "defaultValue": 5
+    },
+    "price_months": {
+      "bsonType": "int",
+      "title": "收费月数",
+      "description": "收费标准-月数",
+      "minimum": 1,
+      "defaultValue": 1
+    },
+    "price_machines": {
+      "bsonType": "int",
+      "title": "收费台数",
+      "description": "收费标准-机器台数",
+      "minimum": 1,
+      "defaultValue": 1
+    },
+    "buy_price": {
+      "bsonType": "int",
+      "title": "购买价格",
+      "description": "公开产品的一次性购买价格（积分）",
+      "minimum": 0,
+      "defaultValue": 0
+    },
+    "description": {
+      "bsonType": "string",
+      "title": "产品描述",
+      "description": "产品详细说明"
+    },
+    "remark": {
+      "bsonType": "string",
+      "title": "备注",
+      "description": "产品备注信息"
+    },
+    "status": {
+      "bsonType": "int",
+      "title": "状态",
+      "description": "0-下架, 1-上架",
+      "enum": [0, 1],
+      "defaultValue": 1
+    },
+    "valid_days_options": {
+      "bsonType": "array",
+      "title": "有效期选项",
+      "description": "可选的有效期天数",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "days": {
+            "bsonType": "int",
+            "title": "天数"
+          },
+          "label": {
+            "bsonType": "string",
+            "title": "显示名称"
+          },
+          "discount": {
+            "bsonType": "number",
+            "title": "折扣",
+            "description": "1表示原价，0.9表示9折",
+            "defaultValue": 1
+          }
+        }
+      },
+      "defaultValue": [
+        {"days": 30, "label": "月卡(30天)", "discount": 1},
+        {"days": 90, "label": "季卡(90天)", "discount": 0.9},
+        {"days": 365, "label": "年卡(365天)", "discount": 0.8}
+      ]
+    },
+    "custom_user_ids": {
+      "bsonType": "array",
+      "title": "可见用户列表",
+      "description": "可见用户ID列表。为空=产品不可见；包含'all'=所有人可见原价；包含具体用户ID=只有这些用户可见且享受3折优惠",
+      "items": {
+        "bsonType": "string"
+      },
+      "defaultValue": []
+    },
+    "purchased_user_ids": {
+      "bsonType": "array",
+      "title": "已购买用户列表",
+      "description": "已购买该产品的用户ID列表。管理员手动分配或用户购买后自动添加",
+      "items": {
+        "bsonType": "string"
+      },
+      "defaultValue": []
+    },
+    "special_price_user_ids": {
+      "bsonType": "array",
+      "title": "特殊价格用户列表",
+      "description": "特殊价格用户ID列表。如果用户在列表中且绑定机器数不超过1000台，则享受特殊价格",
+      "items": {
+        "bsonType": "string"
+      },
+      "defaultValue": []
+    },
+    "special_price": {
+      "bsonType": "number",
+      "title": "特殊价格",
+      "description": "特殊价格用户享受的积分/月/机器价格，默认为1",
+      "minimum": 0.1,
+      "defaultValue": 1
+    },
+    "version_logs": {
+      "bsonType": "array",
+      "title": "版本更新日志",
+      "description": "产品版本更新记录",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "version": {
+            "bsonType": "string",
+            "title": "版本号"
+          },
+          "date": {
+            "bsonType": "timestamp",
+            "title": "发布时间"
+          },
+          "log": {
+            "bsonType": "string",
+            "title": "更新内容"
+          },
+          "download_url": {
+            "bsonType": "string",
+            "title": "下载地址"
+          }
+        }
+      },
+      "defaultValue": []
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "_update_time": {
+      "bsonType": "timestamp",
+      "title": "更新时间"
+    }
+  }
+}
+

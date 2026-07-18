@@ -1,0 +1,44 @@
+{
+  "indexes": [
+    {
+      "IndexName": "inviter_id",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "inviter_id",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "invitee_id",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "invitee_id",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "_add_time",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "_add_time",
+          "Direction": "-1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "order_id",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "order_id",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": true
+      }
+    }
+  ]
+}

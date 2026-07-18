@@ -1,0 +1,61 @@
+{
+  "indexes": [
+    {
+      "IndexName": "user_id",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "user_id",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "_add_time",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "_add_time",
+          "Direction": "-1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "type",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "type",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "source",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "source",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": false
+      }
+    },
+    {
+      "IndexName": "user_order_source_unique",
+      "MgoKeySchema": {
+        "MgoIndexKeys": [{
+          "Name": "user_id",
+          "Direction": "1"
+        }, {
+          "Name": "order_id",
+          "Direction": "1"
+        }, {
+          "Name": "source",
+          "Direction": "1"
+        }],
+        "MgoIsUnique": true
+      }
+    }
+  ]
+}
+

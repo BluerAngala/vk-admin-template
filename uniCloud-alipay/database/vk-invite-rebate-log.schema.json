@@ -1,0 +1,71 @@
+{
+  "bsonType": "object",
+  "description": "邀请返利记录表",
+  "required": ["inviter_id", "invitee_id", "order_id", "pay_amount", "rebate_rate", "rebate_tier", "rebate_points"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "inviter_id": {
+      "bsonType": "string",
+      "description": "邀请人ID",
+      "title": "邀请人ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "invitee_id": {
+      "bsonType": "string",
+      "description": "被邀请人ID",
+      "title": "被邀请人ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "invitee_nickname": {
+      "bsonType": "string",
+      "description": "被邀请人昵称（冗余存储）",
+      "title": "被邀请人昵称"
+    },
+    "order_id": {
+      "bsonType": "string",
+      "description": "关联订单ID",
+      "title": "订单ID"
+    },
+    "pay_amount": {
+      "bsonType": "int",
+      "description": "消费积分数量",
+      "title": "消费积分"
+    },
+    "rebate_tier": {
+      "bsonType": "int",
+      "description": "返利阶梯等级",
+      "title": "返利阶梯"
+    },
+    "rebate_rate": {
+      "bsonType": "int",
+      "description": "返利比例（百分比）",
+      "title": "返利比例"
+    },
+    "rebate_points": {
+      "bsonType": "int",
+      "description": "返利积分",
+      "title": "返利积分"
+    },
+    "inviter_total_consume": {
+      "bsonType": "int",
+      "description": "返利时邀请人的累计消费积分",
+      "title": "累计消费积分"
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}

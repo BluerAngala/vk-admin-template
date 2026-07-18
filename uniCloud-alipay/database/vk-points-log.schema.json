@@ -1,0 +1,115 @@
+{
+  "bsonType": "object",
+  "description": "积分流水表",
+  "required": ["user_id", "type", "amount", "balance"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "用户ID",
+      "title": "用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "type": {
+      "bsonType": "string",
+      "description": "类型：income-收入，consume-支出",
+      "title": "类型",
+      "enum": [
+        {
+          "value": "income",
+          "text": "收入"
+        },
+        {
+          "value": "consume",
+          "text": "支出"
+        }
+      ]
+    },
+    "amount": {
+      "bsonType": "int",
+      "description": "积分数量（正数表示增加，负数表示减少）",
+      "title": "积分数量"
+    },
+    "balance": {
+      "bsonType": "int",
+      "description": "操作后余额",
+      "title": "操作后余额"
+    },
+    "source": {
+      "bsonType": "string",
+      "description": "来源：recharge-充值，card_buy-购买卡密，card_renew-续费卡密，reward-奖励，refund-退款，invite_rebate-邀请返利",
+      "title": "来源",
+      "enum": [
+        {
+          "value": "recharge",
+          "text": "充值"
+        },
+        {
+          "value": "card_buy",
+          "text": "购买卡密"
+        },
+        {
+          "value": "card_renew",
+          "text": "续费卡密"
+        },
+        {
+          "value": "reward",
+          "text": "奖励"
+        },
+        {
+          "value": "refund",
+          "text": "退款"
+        },
+        {
+          "value": "invite_rebate",
+          "text": "邀请返利"
+        }
+      ]
+    },
+    "order_id": {
+      "bsonType": "string",
+      "description": "关联订单ID",
+      "title": "订单ID"
+    },
+    "card_id": {
+      "bsonType": "string",
+      "description": "关联卡密ID",
+      "title": "卡密ID"
+    },
+    "product_id": {
+      "bsonType": "string",
+      "description": "产品ID（从后端获取，防止前端篡改）",
+      "title": "产品ID",
+      "trim": "both"
+    },
+    "product_name": {
+      "bsonType": "string",
+      "description": "产品名称（从后端获取，防止前端篡改）",
+      "title": "产品名称",
+      "trim": "both"
+    },
+    "remark": {
+      "bsonType": "string",
+      "description": "备注说明",
+      "title": "备注",
+      "trim": "both"
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "title": "创建时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,118 @@
+{
+  "bsonType": "object",
+  "description": "卡密表（新架构）",
+  "required": ["card_code", "card_type"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "card_code": {
+      "bsonType": "string",
+      "description": "密钥字符串",
+      "title": "密钥",
+      "trim": "both"
+    },
+    "card_type": {
+      "bsonType": "string",
+      "description": "类型标记（用于分类，如：trial/monthly/quarterly/yearly/permanent）",
+      "title": "类型",
+      "trim": "both"
+    },
+    "product_id": {
+      "bsonType": "string",
+      "description": "产品ID（可选，用于关联产品）",
+      "title": "产品ID",
+      "trim": "both"
+    },
+    "product_name": {
+      "bsonType": "string",
+      "description": "产品名称（冗余字段，方便查询）",
+      "title": "产品名称",
+      "trim": "both"
+    },
+    "limit_days": {
+      "bsonType": "int",
+      "description": "限制天数，-1表示不限时间",
+      "title": "限制天数",
+      "defaultValue": -1
+    },
+    "activate_time": {
+      "bsonType": "timestamp",
+      "description": "激活时间（首次使用时设置），0表示未激活",
+      "title": "激活时间",
+      "defaultValue": 0
+    },
+    "expire_time": {
+      "bsonType": "timestamp",
+      "description": "过期时间（首次使用时计算），0表示未设置",
+      "title": "过期时间",
+      "defaultValue": 0
+    },
+    "total_times": {
+      "bsonType": "int",
+      "description": "总次数，-1表示不限次数",
+      "title": "总次数",
+      "defaultValue": -1
+    },
+    "used_times": {
+      "bsonType": "int",
+      "description": "已使用次数",
+      "title": "已使用次数",
+      "defaultValue": 0
+    },
+    "remaining_times": {
+      "bsonType": "int",
+      "description": "剩余次数，-1表示不限（可通过 total_times - used_times 计算）",
+      "title": "剩余次数",
+      "defaultValue": -1
+    },
+    "max_machine_count": {
+      "bsonType": "int",
+      "description": "最大机器码数量，-1表示不限机器",
+      "title": "最大机器数",
+      "defaultValue": -1
+    },
+    "authorized_machines": {
+      "bsonType": "array",
+      "title": "授权机器码列表",
+      "description": "已授权的机器码数组",
+      "items": {
+        "bsonType": "string"
+      },
+      "defaultValue": []
+    },
+    "points_price": {
+      "bsonType": "int",
+      "description": "积分价格（购买该卡密需要的积分）",
+      "title": "积分价格",
+      "defaultValue": 0
+    },
+    "buy_user_id": {
+      "bsonType": "string",
+      "description": "购买该卡密的用户ID",
+      "title": "购买用户ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "remark": {
+      "bsonType": "string",
+      "description": "备注",
+      "title": "备注",
+      "trim": "both"
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "生成时间",
+      "title": "生成时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    }
+  }
+}
+

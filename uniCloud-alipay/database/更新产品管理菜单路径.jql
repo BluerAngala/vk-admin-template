@@ -1,0 +1,9 @@
+// 更新产品管理菜单路径
+// 将 /pages_plugs/system/product/list 更新为 /pages/system/product/list
+
+db.collection('opendb-admin-menus').where({
+  menu_id: 'system-uni-product-manage'
+}).update({
+  url: '/pages/system/product/list'
+})
+
