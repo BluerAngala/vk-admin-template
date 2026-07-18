@@ -1,5 +1,8 @@
 node_modules
 unpackage
+.hbuilderx
+.trae
+uni_modules
 
 # OS
 .DS_Store
