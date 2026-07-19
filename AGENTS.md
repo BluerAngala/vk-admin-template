@@ -67,7 +67,7 @@
 | `common/uni-admin/` | uni-admin 官方模板样式补丁 | `说明.md` 详述 |
 | `common/theme/` | 主题配置 `white / black / blackWhite / custom` | 由 `app.config.js theme.use` 切换 |
 | `common/function/myPubFunction.js` | 自定义公共函数,挂在 `app.config.js myfn`,运行期通过 `vk.myfn.xxx()` 访问 | 当前仅 `myfn.test1` 示例 |
-| `uni_modules/` | 23+ 个 uni_modules 插件(uni-id-pages / uni-forms / uni-popup / uni-captcha / vk-unicloud / vk-mail 等) | **不要**手动改这里,按 uni_modules 规范升级 |
+| `uni_modules/` | 23+ 个 uni_modules 插件(uni-id-pages / uni-forms / uni-popup / uni-captcha / vk-unicloud / vk-mail 等) | **不要**手动改这里,按 uni_modules 规范升级;见 §9.11 重复 schema 规则 |
 | `store/modules/` | Vuex 模块($app/$user/$error) | 自动 require/import |
 | `static_menu/` | `menu.json` 生产菜单 + `menu-dev.json` 演示菜单 | `app.config.menu.js` 按 `NODE_ENV` 合并 |
 | `uniCloud-alipay/cloudfunctions/router/` | **单云函数 `router`**(URL `/http/router`);`service/admin/*` 业务、`util/*` 工具、`dao/*` DAO、`middleware/*` 拦截器 | 所有业务入口,改这里=改后端 |
@@ -218,6 +218,7 @@ vk.setVuex('$user.userInfo', { ...userInfo, nickname: '新昵称' })
 8. **跨端不可移植** —— 框架 PC-only,不要把页面改成移动端(布局假设宽屏 ≥1280)
 9. **appid 隔离** —— 每个部署要修改 `manifest.json:3` `__UNI__xxx` 并在 `opendb-app-list` 注册(README §6)
 10. **改完页面记得在 `pages_plugs/system_uni/vk-global-data` 或 `app.config.menu.js` 同步菜单** —— 静态菜单 + 动态菜单双轨,缺一会导致 404
+11. **不要在 `uniCloud-alipay/database/` 中放与 uni_modules 同名的 schema 文件** —— HBuilderX 构建时会自动加载 `uni_modules/*/uniCloud/database/` 下的 schema,与项目本地同名文件冲突导致重复报错。如需定制 uni_modules 的 schema(如改字段名/类型),直接修改 uni_modules 源文件并接受升级时需重新同步的风险;不要在 `database/` 目录放副本
 
 ## 10. Quick Recipe: 新增一个 CRUD 页面
 
