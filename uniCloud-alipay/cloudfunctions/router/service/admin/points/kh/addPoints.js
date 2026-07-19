@@ -43,14 +43,20 @@ module.exports = {
 		// ② 直接上分(内部已含幂等:同一 trade_no 重复调用不会重复到账)
 		console.log(`[积分充值] 用户=${user_id}, 订单=${trade_no}, 套餐=${pkg.name}, 积分=${pkg.points}`);
 		const remark = `购买${pkg.name}`;
-		const result = await pubFun.addPoints(
-			vk,
-			user_id,
-			pkg.points,
-			'recharge',
-			remark,
-			trade_no
-		);
+		let result;
+		try {
+			result = await pubFun.addPoints(
+				vk,
+				user_id,
+				pkg.points,
+				'recharge',
+				remark,
+				trade_no
+			);
+		} catch (err) {
+			console.error(`[积分充值异常] 用户=${user_id}, 订单=${trade_no}, 异常:`, err);
+			return { code: -1, msg: `充值异常: ${err.message || '未知错误'}` };
+		}
 
 		if (!result || !result.success) {
 			console.error(`[积分充值失败] 用户=${user_id}, 订单=${trade_no}, 错误=${result && result.message}`);

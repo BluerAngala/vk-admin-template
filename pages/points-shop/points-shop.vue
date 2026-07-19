@@ -23,6 +23,44 @@
 			</div>
 		</el-card>
 
+		<!-- 支付未到账自助修复 -->
+		<el-card class="repair-card">
+			<div class="repair-inline">
+				<i class="el-icon-warning-outline"></i>
+				<span class="repair-label">支付成功但积分未到账？输入订单号自动核查补发</span>
+				<el-input
+					v-model="repairTradeNo"
+					placeholder="输入订单号"
+					size="small"
+					clearable
+					class="repair-input"
+					@keyup.enter.native="submitRepair"
+				/>
+				<el-button
+					type="warning"
+					size="small"
+					:loading="repairLoading"
+					:disabled="repairLoading"
+					@click="submitRepair"
+				>{{ repairLoading ? '查询中...' : '立即核查' }}</el-button>
+			</div>
+			<div class="repair-result" v-if="repairResult">
+				<el-alert :title="repairResult.title" :type="repairResult.type" show-icon :closable="false">
+					<template slot="default">
+						<div v-if="repairResult.order" class="repair-order-info">
+							<p>订单号：{{ repairResult.order.trade_no }}</p>
+							<p>套餐名称：{{ repairResult.order.goods_name }}</p>
+							<p>支付金额：¥{{ repairResult.order.total_amount }}</p>
+							<p>购买时间：{{ repairResult.order.create_time }}</p>
+							<p>支付状态：{{ repairResult.order.is_paid ? '已支付' : '未支付' }}</p>
+							<p>到账状态：{{ repairResult.order.is_credited ? '已到账' : '未到账' }}</p>
+						</div>
+						<div v-else>{{ repairResult.desc }}</div>
+					</template>
+				</el-alert>
+			</div>
+		</el-card>
+
 		<!-- 积分套餐列表 -->
 		<view class="packages-section">
 			<h3 class="section-title">选择积分套餐</h3>
@@ -163,6 +201,9 @@ export default {
 			checkingPayment: false,
 			pendingOrderStorageKey: 'vk_pending_pay_order',
 			serviceDialog: { show: false },
+			repairTradeNo: '',
+			repairLoading: false,
+			repairResult: null,
 			// 积分套餐配置（与支付平台商品对应）
 			packages: [
 				{ id: 1, name: '体验套餐（10积分）', points: 10, price: 10, discount: '', description: '适合新手体验', recommended: false, goods_key: '1eoood' },
@@ -421,7 +462,66 @@ export default {
 			for (let i = 0; i < len; i++) r += chars.charAt(Math.floor(Math.random() * chars.length));
 			return r;
 		},
-		showServiceQRCode() { this.serviceDialog.show = true; }
+		showServiceQRCode() { this.serviceDialog.show = true; },
+
+		// ========== 自助修复 ==========
+		async submitRepair() {
+			const trade_no = this.repairTradeNo;
+			if (!trade_no || !trade_no.trim()) return vk.toast('请输入订单号');
+
+			this.repairLoading = true;
+			this.repairResult = null;
+
+			try {
+				const res = await new Promise(resolve => {
+					vk.callFunction({
+						url: 'admin/points/kh/selfRepair',
+						data: { trade_no: trade_no.trim() },
+						success: d => resolve(d),
+						fail: e => resolve({ code: -1, msg: e.msg || '请求失败' })
+					});
+				});
+
+				const d = res.data || {};
+				const order = d.order || null;
+
+				if (res.code === 0 && d.status === 'credited') {
+					this.repairResult = {
+						type: 'success',
+						title: '修复成功，积分已到账',
+						order
+					};
+					this.repairTradeNo = '';
+					await this.loadUserPoints();
+				} else if (res.code === 0 && d.status === 'already_credited') {
+					this.repairResult = {
+						type: 'success',
+						title: '该订单积分已到账，无需修复',
+						order
+					};
+				} else if (res.code === 0 && d.status === 'not_paid') {
+					this.repairResult = {
+						type: 'warning',
+						title: '该订单尚未支付',
+						order
+					};
+				} else {
+					this.repairResult = {
+						type: 'error',
+						title: res.msg || '核查失败',
+						order
+					};
+				}
+			} catch (err) {
+				this.repairResult = {
+					type: 'error',
+					title: '请求异常',
+					desc: err.message || '网络异常，请稍后重试'
+				};
+			} finally {
+				this.repairLoading = false;
+			}
+		}
 	}
 };
 </script>
@@ -794,6 +894,52 @@ export default {
 	}
 	50% {
 		transform: scale(1.1);
+	}
+}
+
+/* 支付未到账修复卡片 */
+.repair-card {
+	margin-bottom: 20px;
+	border-radius: 12px;
+	border: 1px solid #faecd8;
+	background: #fdf6ec;
+
+	::v-deep .el-card__body {
+		padding: 14px 20px;
+	}
+
+	.repair-inline {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+
+		> i {
+			font-size: 20px;
+			color: #e6a23c;
+		}
+
+		.repair-label {
+			font-size: 14px;
+			color: #909399;
+			white-space: nowrap;
+		}
+
+		.repair-input {
+			flex: 1;
+			max-width: 300px;
+		}
+	}
+
+	.repair-result {
+		margin-top: 12px;
+
+		.repair-order-info {
+			p {
+				margin: 4px 0;
+				font-size: 13px;
+				color: #606266;
+			}
+		}
 	}
 }
 </style>

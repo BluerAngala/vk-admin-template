@@ -239,16 +239,34 @@ points.initUserPoints = async function (vk, userId) {
       _add_time: Date.now(),
       _update_time: Date.now(),
     },
+  }).catch(err => {
+    // 并发场景:另一个请求可能已抢先创建,重新查一次
+    console.warn(`[initUserPoints] 创建账户失败(可能并发), userId=${userId}, err=${err.message}`);
+    return null;
   });
 
-  return {
-    _id: addRes.id,
-    user_id: userId,
-    total_points: defaultPoints,
-    available_points: defaultPoints,
-    frozen_points: 0,
-    consumed_points: 0,
-  };
+  if (addRes && addRes.id) {
+    return {
+      _id: addRes.id,
+      user_id: userId,
+      total_points: defaultPoints,
+      available_points: defaultPoints,
+      frozen_points: 0,
+      consumed_points: 0,
+    };
+  }
+
+  // 并发兜底:重新查询已存在的账户
+  const retryRes = await vk.baseDao.selects({ dbName, whereJson: { user_id: userId } });
+  let retryRecords = [];
+  if (Array.isArray(retryRes)) retryRecords = retryRes;
+  else if (retryRes && retryRes.rows) retryRecords = retryRes.rows;
+  else if (retryRes && retryRes.data) retryRecords = retryRes.data;
+
+  if (retryRecords && retryRecords.length > 0) return retryRecords[0];
+
+  // 真的创建失败了
+  throw new Error(`积分账户创建失败, userId=${userId}`);
 };
 
 /**
