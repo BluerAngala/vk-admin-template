@@ -55,21 +55,7 @@
         }],
         "MgoIsUnique": true
       }
-    },
-    {
-      "IndexName": "order_source_unique",
-      "MgoKeySchema": {
-        "MgoIndexKeys": [{
-          "Name": "order_id",
-          "Direction": "1"
-        }, {
-          "Name": "source",
-          "Direction": "1"
-        }],
-        "MgoIsUnique": true,
-        "MgoIsSparse": true
-      }
-    }
+
   ]
 }
 

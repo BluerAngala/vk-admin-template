@@ -305,17 +305,18 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
   // 事务:日志+余额原子写入
   const transaction = await db.startTransaction();
   try {
-    await transaction.collection(logDbName).add({
+    const logData = {
       user_id: userId,
       type: amount > 0 ? "income" : "expense",
       amount: amount,
       balance: newAvailablePoints,
       source: source,
-      order_id: orderId,
       card_id: cardId,
       remark: remark,
       _add_time: Date.now(),
-    });
+    };
+    if (orderId) logData.order_id = orderId;
+    await transaction.collection(logDbName).add(logData);
 
     const updateRes = await transaction.collection(dbName)
       .where({ user_id: userId, available_points: currentRecord.available_points })
@@ -401,17 +402,18 @@ points.consumePoints = async function (vk, userId, amount, source, remark, order
   // 事务:日志+余额原子写入
   const transaction = await db.startTransaction();
   try {
-    await transaction.collection(logDbName).add({
+    const logData = {
       user_id: userId,
       type: "consume",
       amount: -amount,
       balance: newAvailablePoints,
       source: source,
-      order_id: orderId,
       card_id: cardId,
       remark: remark,
       _add_time: Date.now(),
-    });
+    };
+    if (orderId) logData.order_id = orderId;
+    await transaction.collection(logDbName).add(logData);
 
     const updateRes = await transaction.collection(dbName)
       .where({ user_id: userId, available_points: currentRecord.available_points })
