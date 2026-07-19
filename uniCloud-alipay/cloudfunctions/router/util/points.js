@@ -257,27 +257,31 @@ points.initUserPoints = async function (vk, userId) {
 points.addPoints = async function (vk, userId, amount, source, remark, orderId = "", cardId = "") {
   const dbName = "vk-user-points";
   const logDbName = "vk-points-log";
+  const db = vk.database();
 
   // 如果有订单号，先检查是否已经处理过（防止重复充值）
   if (orderId) {
-    const existLog = await vk.baseDao.selects({
+    // 全局检查:同一 order_id+source 只能上一次分(防跨用户复用)
+    const globalExist = await vk.baseDao.selects({
       dbName: logDbName,
-      whereJson: {
-        user_id: userId,
-        order_id: orderId,
-        source: source
-      }
+      whereJson: { order_id: orderId, source: source }
     });
-    
-    let existRecords = [];
-    if (Array.isArray(existLog)) existRecords = existLog;
-    else if (existLog && existLog.rows) existRecords = existLog.rows;
-    else if (existLog && existLog.data) existRecords = existLog.data;
-    
-    if (existRecords && existRecords.length > 0) {
-      console.log(`订单 ${orderId} 已处理过，跳过重复充值`);
-      const balance = await points.getPointsBalance(vk, userId);
-      return { success: true, balance: balance.available_points, duplicate: true };
+    let globalRecords = [];
+    if (Array.isArray(globalExist)) globalRecords = globalExist;
+    else if (globalExist && globalExist.rows) globalRecords = globalExist.rows;
+    else if (globalExist && globalExist.data) globalRecords = globalExist.data;
+
+    if (globalRecords && globalRecords.length > 0) {
+      // 如果是同一用户，返回幂等；如果是不同用户，拒绝
+      const isSameUser = globalRecords.some(r => r.user_id === userId);
+      if (isSameUser) {
+        console.log(`订单 ${orderId} 已处理过，跳过重复充值`);
+        const balance = await points.getPointsBalance(vk, userId);
+        return { success: true, balance: balance.available_points, duplicate: true };
+      } else {
+        console.warn(`订单 ${orderId} 已被其他用户使用，拒绝充值`);
+        return { success: false, message: "该订单已被使用" };
+      }
     }
   }
 
@@ -298,38 +302,40 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
   const newTotalPoints = currentRecord.total_points + amount;
   const newAvailablePoints = currentRecord.available_points + amount;
 
+  // 事务:日志+余额原子写入
+  const transaction = await db.startTransaction();
   try {
-    // 插入日志记录
-    await vk.baseDao.add({
-      dbName: logDbName,
-      dataJson: {
-        user_id: userId,
-        type: amount > 0 ? "income" : "expense",
-        amount: amount,
-        balance: newAvailablePoints,
-        source: source,
-        order_id: orderId,
-        card_id: cardId,
-        remark: remark,
-        _add_time: Date.now(),
-      }
+    await transaction.collection(logDbName).add({
+      user_id: userId,
+      type: amount > 0 ? "income" : "expense",
+      amount: amount,
+      balance: newAvailablePoints,
+      source: source,
+      order_id: orderId,
+      card_id: cardId,
+      remark: remark,
+      _add_time: Date.now(),
     });
-    
-    // 更新积分账户
-    await vk.baseDao.update({
-      dbName,
-      whereJson: { user_id: userId },
-      dataJson: {
+
+    const updateRes = await transaction.collection(dbName)
+      .where({ user_id: userId, available_points: currentRecord.available_points })
+      .update({
         total_points: newTotalPoints,
         available_points: newAvailablePoints,
         _update_time: Date.now(),
-      }
-    });
-    
+      });
+
+    if (updateRes.updated === 0) {
+      await transaction.rollback();
+      return { success: false, message: "积分余额已变化，请刷新后重试" };
+    }
+
+    await transaction.commit();
     console.log(`积分充值成功：用户=${userId}, 金额=${amount}, 订单=${orderId}, 新余额=${newAvailablePoints}`);
     return { success: true, balance: newAvailablePoints };
-    
+
   } catch (err) {
+    await transaction.rollback();
     console.error(`积分充值失败：用户=${userId}, 金额=${amount}, 订单=${orderId}`, err);
     return { success: false, message: err.message || "积分充值失败" };
   }
@@ -341,27 +347,29 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
 points.consumePoints = async function (vk, userId, amount, source, remark, orderId = "", cardId = "") {
   const dbName = "vk-user-points";
   const logDbName = "vk-points-log";
+  const db = vk.database();
 
   // 如果有订单号，先检查是否已经处理过（防止重复扣除）
   if (orderId) {
-    const existLog = await vk.baseDao.selects({
+    const globalExist = await vk.baseDao.selects({
       dbName: logDbName,
-      whereJson: {
-        user_id: userId,
-        order_id: orderId,
-        source: source
-      }
+      whereJson: { order_id: orderId, source: source }
     });
-    
-    let existRecords = [];
-    if (Array.isArray(existLog)) existRecords = existLog;
-    else if (existLog && existLog.rows) existRecords = existLog.rows;
-    else if (existLog && existLog.data) existRecords = existLog.data;
-    
-    if (existRecords && existRecords.length > 0) {
-      console.log(`订单 ${orderId} 已处理过，跳过重复扣除`);
-      const balance = await points.getPointsBalance(vk, userId);
-      return { success: true, balance: balance.available_points, duplicate: true };
+    let globalRecords = [];
+    if (Array.isArray(globalExist)) globalRecords = globalExist;
+    else if (globalExist && globalExist.rows) globalRecords = globalExist.rows;
+    else if (globalExist && globalExist.data) globalRecords = globalExist.data;
+
+    if (globalRecords && globalRecords.length > 0) {
+      const isSameUser = globalRecords.some(r => r.user_id === userId);
+      if (isSameUser) {
+        console.log(`订单 ${orderId} 已处理过，跳过重复扣除`);
+        const balance = await points.getPointsBalance(vk, userId);
+        return { success: true, balance: balance.available_points, duplicate: true };
+      } else {
+        console.warn(`订单 ${orderId} 已被其他用户使用，拒绝扣除`);
+        return { success: false, message: "该订单已被使用" };
+      }
     }
   }
 
@@ -390,38 +398,40 @@ points.consumePoints = async function (vk, userId, amount, source, remark, order
   const newAvailablePoints = currentRecord.available_points - amount;
   const newConsumedPoints = currentRecord.consumed_points + amount;
 
+  // 事务:日志+余额原子写入
+  const transaction = await db.startTransaction();
   try {
-    // 插入日志记录
-    await vk.baseDao.add({
-      dbName: logDbName,
-      dataJson: {
-        user_id: userId,
-        type: "consume",
-        amount: -amount,
-        balance: newAvailablePoints,
-        source: source,
-        order_id: orderId,
-        card_id: cardId,
-        remark: remark,
-        _add_time: Date.now(),
-      }
+    await transaction.collection(logDbName).add({
+      user_id: userId,
+      type: "consume",
+      amount: -amount,
+      balance: newAvailablePoints,
+      source: source,
+      order_id: orderId,
+      card_id: cardId,
+      remark: remark,
+      _add_time: Date.now(),
     });
-    
-    // 更新积分账户
-    await vk.baseDao.update({
-      dbName,
-      whereJson: { user_id: userId },
-      dataJson: {
+
+    const updateRes = await transaction.collection(dbName)
+      .where({ user_id: userId, available_points: currentRecord.available_points })
+      .update({
         available_points: newAvailablePoints,
         consumed_points: newConsumedPoints,
         _update_time: Date.now(),
-      }
-    });
-    
+      });
+
+    if (updateRes.updated === 0) {
+      await transaction.rollback();
+      return { success: false, message: "积分余额已变化，请刷新后重试" };
+    }
+
+    await transaction.commit();
     console.log(`积分扣除成功：用户=${userId}, 金额=${amount}, 订单=${orderId}, 新余额=${newAvailablePoints}`);
     return { success: true, balance: newAvailablePoints };
-    
+
   } catch (err) {
+    await transaction.rollback();
     console.error(`积分扣除失败：用户=${userId}, 金额=${amount}, 订单=${orderId}`, err);
     return { success: false, message: err.message || "积分扣除失败" };
   }
