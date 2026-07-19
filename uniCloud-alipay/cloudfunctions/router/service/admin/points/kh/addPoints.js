@@ -1,15 +1,11 @@
 /**
- * 确认支付并充值积分
+ * 确认支付并充值积分（直接上分）
  * 前端流程:fetch(pay.ldxp.cn/shopApi/Pay/order) → window.open(payurl) → 轮询 fetch(Pay/query) → 调本接口
- * @url admin/points/kh/addPoints 前端调用的url参数地址
- * data 请求参数
+ * 前端已确认支付成功后调用，云函数不再二次校验网关（网关对不同IP返回不一致）
+ * 防刷靠: ① 套餐白名单 ② trade_no 幂等(同一订单不会重复到账)
+ * @url admin/points/kh/addPoints
  * @param {String} trade_no  支付网关返回的订单号
- * @param {Number} package_id 前端选中的套餐 id(用于服务端二次校验积分数量)
- * res 返回参数说明
- * @param {Number} code 错误码，0表示成功
- * @param {String} msg 详细信息
- * @param {Object} data.total_points 本次充值的积分
- * @param {Number} data.balance 当前可用积分余额
+ * @param {Number} package_id 前端选中的套餐 id
  */
 module.exports = {
 	main: async (event) => {
@@ -44,45 +40,8 @@ module.exports = {
 			return { code: -1, msg: '套餐不存在' };
 		}
 
-		// ② 二次校验:必须去支付网关确认这笔订单真的付了款
-		// 防止前端伪造 trade_no 直接调此接口刷积分
-		// 支付网关对不同IP可能返回不同结果，需要重试等待状态同步
-		let queryRes;
-		const MAX_RETRIES = 3;
-		const RETRY_DELAY = 3000; // 3秒
-		for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-			try {
-				queryRes = await vk.request({
-					url: 'https://pay.ldxp.cn/shopApi/Pay/query',
-					method: 'POST',
-					header: { 'Content-Type': 'application/json' },
-					data: { trade_no },
-					timeout: 10000
-				});
-			} catch (err) {
-				console.error(`查询支付网关失败(第${attempt}次):`, err);
-				if (attempt === MAX_RETRIES) {
-					return { code: -1, msg: '支付验证失败，请稍后重试' };
-				}
-				await new Promise(r => setTimeout(r, RETRY_DELAY));
-				continue;
-			}
-
-			if (queryRes && queryRes.code === 1 && queryRes.msg === 'success') {
-				break; // 验证通过
-			}
-
-			console.warn(`支付网关返回未支付(第${attempt}/${MAX_RETRIES}次):`, JSON.stringify(queryRes));
-			if (attempt < MAX_RETRIES) {
-				await new Promise(r => setTimeout(r, RETRY_DELAY));
-			}
-		}
-
-		if (!queryRes || queryRes.code !== 1 || queryRes.msg !== 'success') {
-			return { code: -1, msg: '该订单尚未完成支付，请稍后重试' };
-		}
-
-		// ③ 加积分(内部已含幂等:同一 trade_no 重复调用不会重复到账)
+		// ② 直接上分(内部已含幂等:同一 trade_no 重复调用不会重复到账)
+		console.log(`[积分充值] 用户=${user_id}, 订单=${trade_no}, 套餐=${pkg.name}, 积分=${pkg.points}`);
 		const remark = `购买${pkg.name}`;
 		const result = await pubFun.addPoints(
 			vk,
@@ -94,9 +53,11 @@ module.exports = {
 		);
 
 		if (!result || !result.success) {
+			console.error(`[积分充值失败] 用户=${user_id}, 订单=${trade_no}, 错误=${result && result.message}`);
 			return { code: -1, msg: (result && result.message) || '充值失败' };
 		}
 
+		console.log(`[积分充值成功] 用户=${user_id}, 订单=${trade_no}, 积分=${pkg.points}, 余额=${result.balance}, 重复=${!!result.duplicate}`);
 		res.msg = '充值成功';
 		res.data = {
 			trade_no,
