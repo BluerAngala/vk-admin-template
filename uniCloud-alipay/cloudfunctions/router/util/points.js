@@ -257,7 +257,6 @@ points.initUserPoints = async function (vk, userId) {
 points.addPoints = async function (vk, userId, amount, source, remark, orderId = "", cardId = "") {
   const dbName = "vk-user-points";
   const logDbName = "vk-points-log";
-  const db = vk.database();
 
   // 如果有订单号，先检查是否已经处理过（防止重复充值）
   if (orderId) {
@@ -272,7 +271,6 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
     else if (globalExist && globalExist.data) globalRecords = globalExist.data;
 
     if (globalRecords && globalRecords.length > 0) {
-      // 如果是同一用户，返回幂等；如果是不同用户，拒绝
       const isSameUser = globalRecords.some(r => r.user_id === userId);
       if (isSameUser) {
         console.log(`订单 ${orderId} 已处理过，跳过重复充值`);
@@ -302,9 +300,8 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
   const newTotalPoints = currentRecord.total_points + amount;
   const newAvailablePoints = currentRecord.available_points + amount;
 
-  // 事务:日志+余额原子写入
-  const transaction = await db.startTransaction();
   try {
+    // 插入日志记录
     const logData = {
       user_id: userId,
       type: amount > 0 ? "income" : "expense",
@@ -316,27 +313,23 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
       _add_time: Date.now(),
     };
     if (orderId) logData.order_id = orderId;
-    await transaction.collection(logDbName).add(logData);
+    await vk.baseDao.add({ dbName: logDbName, dataJson: logData });
 
-    const updateRes = await transaction.collection(dbName)
-      .where({ user_id: userId, available_points: currentRecord.available_points })
-      .update({
+    // 更新积分账户
+    await vk.baseDao.update({
+      dbName,
+      whereJson: { user_id: userId },
+      dataJson: {
         total_points: newTotalPoints,
         available_points: newAvailablePoints,
         _update_time: Date.now(),
-      });
+      }
+    });
 
-    if (updateRes.updated === 0) {
-      await transaction.rollback();
-      return { success: false, message: "积分余额已变化，请刷新后重试" };
-    }
-
-    await transaction.commit();
     console.log(`积分充值成功：用户=${userId}, 金额=${amount}, 订单=${orderId}, 新余额=${newAvailablePoints}`);
     return { success: true, balance: newAvailablePoints };
 
   } catch (err) {
-    await transaction.rollback();
     console.error(`积分充值失败：用户=${userId}, 金额=${amount}, 订单=${orderId}`, err);
     return { success: false, message: err.message || "积分充值失败" };
   }
@@ -348,7 +341,6 @@ points.addPoints = async function (vk, userId, amount, source, remark, orderId =
 points.consumePoints = async function (vk, userId, amount, source, remark, orderId = "", cardId = "") {
   const dbName = "vk-user-points";
   const logDbName = "vk-points-log";
-  const db = vk.database();
 
   // 如果有订单号，先检查是否已经处理过（防止重复扣除）
   if (orderId) {
@@ -399,9 +391,8 @@ points.consumePoints = async function (vk, userId, amount, source, remark, order
   const newAvailablePoints = currentRecord.available_points - amount;
   const newConsumedPoints = currentRecord.consumed_points + amount;
 
-  // 事务:日志+余额原子写入
-  const transaction = await db.startTransaction();
   try {
+    // 插入日志记录
     const logData = {
       user_id: userId,
       type: "consume",
@@ -413,27 +404,23 @@ points.consumePoints = async function (vk, userId, amount, source, remark, order
       _add_time: Date.now(),
     };
     if (orderId) logData.order_id = orderId;
-    await transaction.collection(logDbName).add(logData);
+    await vk.baseDao.add({ dbName: logDbName, dataJson: logData });
 
-    const updateRes = await transaction.collection(dbName)
-      .where({ user_id: userId, available_points: currentRecord.available_points })
-      .update({
+    // 更新积分账户
+    await vk.baseDao.update({
+      dbName,
+      whereJson: { user_id: userId },
+      dataJson: {
         available_points: newAvailablePoints,
         consumed_points: newConsumedPoints,
         _update_time: Date.now(),
-      });
+      }
+    });
 
-    if (updateRes.updated === 0) {
-      await transaction.rollback();
-      return { success: false, message: "积分余额已变化，请刷新后重试" };
-    }
-
-    await transaction.commit();
     console.log(`积分扣除成功：用户=${userId}, 金额=${amount}, 订单=${orderId}, 新余额=${newAvailablePoints}`);
     return { success: true, balance: newAvailablePoints };
 
   } catch (err) {
-    await transaction.rollback();
     console.error(`积分扣除失败：用户=${userId}, 金额=${amount}, 订单=${orderId}`, err);
     return { success: false, message: err.message || "积分扣除失败" };
   }
