@@ -53,11 +53,19 @@ module.exports = {
 		} catch (err) {
 			// token 过期时重新登录一次
 			if (err.message && err.message.includes('token')) {
-				merchantToken = await getMerchantToken(db, vk, true);
+				try {
+					merchantToken = await getMerchantToken(db, vk, true);
+				} catch (loginErr) {
+					const msg = loginErr.message || '';
+					if (msg.includes('操作频繁') || msg.includes('频繁')) {
+						return { code: -1, msg: '查询过于频繁，请20分钟后重试' };
+					}
+					return { code: -1, msg: '系统繁忙，请稍后重试' };
+				}
 				try {
 					orderInfo = await queryOrderInfo(merchantToken, trade_no);
 				} catch (err2) {
-					return { code: -1, msg: `查询订单失败: ${err2.message}` };
+					return { code: -1, msg: '查询订单失败，请稍后重试' };
 				}
 			} else {
 				return { code: -1, msg: `查询订单失败: ${err.message}` };
@@ -174,16 +182,16 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 				if (parts.length === 2 && parts[0]) {
 					const tokenAge = Date.now() - (parseInt(parts[1]) || 0);
 					if (tokenAge < CACHE_HOURS * 60 * 60 * 1000) {
-						console.log(`[selfRepair] 使用缓存token, 已缓存${Math.floor(tokenAge / 60000)}分钟`);
+						console.log(`[selfRepair] 使用缓存merchant_token, 已缓存${Math.floor(tokenAge / 60000)}分钟`);
 						return parts[0];
 					}
-					console.log(`[selfRepair] token已过期(${Math.floor(tokenAge / 60000)}分钟), 重新登录`);
+					console.log(`[selfRepair] merchant_token已过期(${Math.floor(tokenAge / 60000)}分钟), 重新登录`);
 				}
 			}
 		} catch (_) {}
 	}
 
-	// 登录获取新 token
+	// 登录获取 merchant_token
 	const loginRes = await uniCloud.httpclient.request(
 		'https://pay.ldxp.cn/merchantApi/user/login',
 		{
@@ -200,8 +208,8 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 		throw new Error('链动小店登录失败: ' + JSON.stringify(loginData));
 	}
 
-	const newToken = loginData.data.merchant_token;
-	const cacheValue = newToken + '|' + Date.now();
+	const merchant_token = loginData.data.merchant_token;
+	const cacheValue = merchant_token + '|' + Date.now();
 
 	// 写入缓存
 	try {
@@ -227,10 +235,10 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 			});
 		}
 	} catch (err) {
-		console.warn('[selfRepair] 缓存token失败:', err.message);
+		console.warn('[selfRepair] 缓存merchant_token失败:', err.message);
 	}
 
-	return newToken;
+	return merchant_token;
 }
 
 /**
