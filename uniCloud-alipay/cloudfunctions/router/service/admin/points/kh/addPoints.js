@@ -46,22 +46,40 @@ module.exports = {
 
 		// ② 二次校验:必须去支付网关确认这笔订单真的付了款
 		// 防止前端伪造 trade_no 直接调此接口刷积分
+		// 支付网关对不同IP可能返回不同结果，需要重试等待状态同步
 		let queryRes;
-		try {
-			queryRes = await vk.request({
-				url: 'https://pay.ldxp.cn/shopApi/Pay/query',
-				method: 'POST',
-				header: { 'Content-Type': 'application/json' },
-				data: { trade_no },
-				timeout: 10000
-			});
-		} catch (err) {
-			console.error('查询支付网关失败:', err);
-			return { code: -1, msg: '支付验证失败，请稍后重试' };
+		const MAX_RETRIES = 3;
+		const RETRY_DELAY = 3000; // 3秒
+		for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+			try {
+				queryRes = await vk.request({
+					url: 'https://pay.ldxp.cn/shopApi/Pay/query',
+					method: 'POST',
+					header: { 'Content-Type': 'application/json' },
+					data: { trade_no },
+					timeout: 10000
+				});
+			} catch (err) {
+				console.error(`查询支付网关失败(第${attempt}次):`, err);
+				if (attempt === MAX_RETRIES) {
+					return { code: -1, msg: '支付验证失败，请稍后重试' };
+				}
+				await new Promise(r => setTimeout(r, RETRY_DELAY));
+				continue;
+			}
+
+			if (queryRes && queryRes.code === 1 && queryRes.msg === 'success') {
+				break; // 验证通过
+			}
+
+			console.warn(`支付网关返回未支付(第${attempt}/${MAX_RETRIES}次):`, JSON.stringify(queryRes));
+			if (attempt < MAX_RETRIES) {
+				await new Promise(r => setTimeout(r, RETRY_DELAY));
+			}
 		}
 
 		if (!queryRes || queryRes.code !== 1 || queryRes.msg !== 'success') {
-			return { code: 1, msg: '该订单尚未完成支付' };
+			return { code: -1, msg: '该订单尚未完成支付，请稍后重试' };
 		}
 
 		// ③ 加积分(内部已含幂等:同一 trade_no 重复调用不会重复到账)
