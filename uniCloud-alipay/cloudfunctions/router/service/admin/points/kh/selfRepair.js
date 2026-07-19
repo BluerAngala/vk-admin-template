@@ -144,6 +144,7 @@ module.exports = {
  */
 async function getMerchantToken(db, vk, forceRefresh = false) {
 	const TOKEN_KEY = 'ldxp_merchant_token';
+	const CACHE_HOURS = 20;
 
 	// 读缓存
 	if (!forceRefresh) {
@@ -153,12 +154,16 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 				.get();
 			if (cached.data && cached.data.length > 0) {
 				const record = cached.data[0];
-				const tokenAge = Date.now() - (record.token_updated_at || 0);
-				if (record.value && tokenAge < 20 * 60 * 60 * 1000) { // 20小时，留4h余量
-					console.log(`[selfRepair] 使用缓存token, 已缓存${Math.floor(tokenAge / 60000)}分钟`);
-					return record.value;
+				// value 格式: "token|timestamp"
+				const parts = (record.value || '').split('|');
+				if (parts.length === 2 && parts[0]) {
+					const tokenAge = Date.now() - (parseInt(parts[1]) || 0);
+					if (tokenAge < CACHE_HOURS * 60 * 60 * 1000) {
+						console.log(`[selfRepair] 使用缓存token, 已缓存${Math.floor(tokenAge / 60000)}分钟`);
+						return parts[0];
+					}
+					console.log(`[selfRepair] token已过期(${Math.floor(tokenAge / 60000)}分钟), 重新登录`);
 				}
-				console.log(`[selfRepair] token已过期, 已缓存${Math.floor(tokenAge / 60000)}分钟, 重新登录`);
 			}
 		} catch (_) {}
 	}
@@ -181,6 +186,7 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 	}
 
 	const newToken = loginData.data.merchant_token;
+	const cacheValue = newToken + '|' + Date.now();
 
 	// 写入缓存
 	try {
@@ -190,10 +196,10 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 		if (existing.data && existing.data.length > 0) {
 			await db.collection('vk-global-data')
 				.where({ key: TOKEN_KEY })
-				.update({ value: newToken, token_updated_at: Date.now() });
+				.update({ value: cacheValue });
 		} else {
 			await db.collection('vk-global-data')
-				.add({ data: { key: TOKEN_KEY, value: newToken, token_updated_at: Date.now(), _add_time: Date.now() } });
+				.add({ data: { key: TOKEN_KEY, value: cacheValue, _add_time: Date.now() } });
 		}
 	} catch (err) {
 		console.warn('[selfRepair] 缓存token失败:', err.message);
