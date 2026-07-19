@@ -153,10 +153,12 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 				.get();
 			if (cached.data && cached.data.length > 0) {
 				const record = cached.data[0];
-				const tokenAge = Date.now() - (record._update_time || 0);
+				const tokenAge = Date.now() - (record.token_updated_at || 0);
 				if (record.value && tokenAge < 20 * 60 * 60 * 1000) { // 20小时，留4h余量
+					console.log(`[selfRepair] 使用缓存token, 已缓存${Math.floor(tokenAge / 60000)}分钟`);
 					return record.value;
 				}
+				console.log(`[selfRepair] token已过期, 已缓存${Math.floor(tokenAge / 60000)}分钟, 重新登录`);
 			}
 		} catch (_) {}
 	}
@@ -188,10 +190,10 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 		if (existing.data && existing.data.length > 0) {
 			await db.collection('vk-global-data')
 				.where({ key: TOKEN_KEY })
-				.update({ value: newToken, _update_time: Date.now() });
+				.update({ value: newToken, token_updated_at: Date.now() });
 		} else {
 			await db.collection('vk-global-data')
-				.add({ data: { key: TOKEN_KEY, value: newToken, _add_time: Date.now(), _update_time: Date.now() } });
+				.add({ data: { key: TOKEN_KEY, value: newToken, token_updated_at: Date.now(), _add_time: Date.now() } });
 		}
 	} catch (err) {
 		console.warn('[selfRepair] 缓存token失败:', err.message);
