@@ -35,7 +35,16 @@ module.exports = {
 		const alreadyCredited = existLog.data && existLog.data.length > 0;
 
 		// ========== ② 获取 merchant_token（缓存24h） ==========
-		let merchantToken = await getMerchantToken(db, vk);
+		let merchantToken;
+		try {
+			merchantToken = await getMerchantToken(db, vk);
+		} catch (err) {
+			const msg = err.message || '';
+			if (msg.includes('操作频繁') || msg.includes('频繁')) {
+				return { code: -1, msg: '查询过于频繁，请20分钟后重试' };
+			}
+			return { code: -1, msg: '系统繁忙，请稍后重试' };
+		}
 
 		// ========== ③ 查询订单详情 ==========
 		let orderInfo = null;
