@@ -144,17 +144,23 @@ module.exports = {
  */
 async function getMerchantToken(db, vk, forceRefresh = false) {
 	const TOKEN_KEY = 'ldxp_merchant_token';
+	const GLOBAL_DB = 'vk-global-data';
 	const CACHE_HOURS = 20;
 
 	// 读缓存
 	if (!forceRefresh) {
 		try {
-			const cached = await db.collection('vk-global-data')
-				.where({ key: TOKEN_KEY })
-				.get();
-			if (cached.data && cached.data.length > 0) {
-				const record = cached.data[0];
-				// value 格式: "token|timestamp"
+			const cached = await vk.baseDao.selects({
+				dbName: GLOBAL_DB,
+				whereJson: { key: TOKEN_KEY }
+			});
+			let records = [];
+			if (Array.isArray(cached)) records = cached;
+			else if (cached && cached.rows) records = cached.rows;
+			else if (cached && cached.data) records = cached.data;
+
+			if (records.length > 0) {
+				const record = records[0];
 				const parts = (record.value || '').split('|');
 				if (parts.length === 2 && parts[0]) {
 					const tokenAge = Date.now() - (parseInt(parts[1]) || 0);
@@ -190,16 +196,26 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 
 	// 写入缓存
 	try {
-		const existing = await db.collection('vk-global-data')
-			.where({ key: TOKEN_KEY })
-			.get();
-		if (existing.data && existing.data.length > 0) {
-			await db.collection('vk-global-data')
-				.where({ key: TOKEN_KEY })
-				.update({ value: cacheValue });
+		const existing = await vk.baseDao.selects({
+			dbName: GLOBAL_DB,
+			whereJson: { key: TOKEN_KEY }
+		});
+		let existingRecords = [];
+		if (Array.isArray(existing)) existingRecords = existing;
+		else if (existing && existing.rows) existingRecords = existing.rows;
+		else if (existing && existing.data) existingRecords = existing.data;
+
+		if (existingRecords.length > 0) {
+			await vk.baseDao.update({
+				dbName: GLOBAL_DB,
+				whereJson: { key: TOKEN_KEY },
+				dataJson: { value: cacheValue }
+			});
 		} else {
-			await db.collection('vk-global-data')
-				.add({ data: { key: TOKEN_KEY, value: cacheValue, _add_time: Date.now() } });
+			await vk.baseDao.add({
+				dbName: GLOBAL_DB,
+				dataJson: { key: TOKEN_KEY, value: cacheValue, _add_time: Date.now() }
+			});
 		}
 	} catch (err) {
 		console.warn('[selfRepair] 缓存token失败:', err.message);
