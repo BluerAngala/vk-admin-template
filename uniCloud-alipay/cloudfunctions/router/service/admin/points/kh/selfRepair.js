@@ -212,10 +212,10 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 		if (existing.data && existing.data.length > 0) {
 			await db.collection('vk-global-data')
 				.where({ key: TOKEN_KEY })
-				.update({ value: cacheValue });
+				.update({ value: cacheValue, _add_time: Date.now() });
 		} else {
 			await db.collection('vk-global-data')
-				.add({ key: TOKEN_KEY, value: cacheValue });
+				.add({ key: TOKEN_KEY, value: cacheValue, _add_time: Date.now() });
 		}
 	} catch (err) {
 		console.warn('[selfRepair] 缓存merchant_token失败:', err.message);
