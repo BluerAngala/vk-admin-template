@@ -32,7 +32,6 @@ module.exports = {
 		const REF_TABLES = [
 			{ table: 'vk-card-key',         field: 'buy_user_id' },
 			{ table: 'vk-user-points',      field: 'user_id' },
-			{ table: 'vk-points-log',       field: 'user_id' },
 			{ table: 'vk-blacklist',        field: 'user_id' },
 			{ table: 'vk-invite-rebate-log', field: 'user_id' },
 		];
