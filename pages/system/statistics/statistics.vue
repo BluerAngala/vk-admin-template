@@ -768,7 +768,12 @@
 
       <!-- 预览结果 -->
       <el-card v-if="migrateDialog.previewData" shadow="never">
-        <div slot="header" style="font-weight: 500;">预览结果（共 {{ migrateDialog.previewData.total }} 条，显示前 {{ migrateDialog.previewData.preview.length }} 条）</div>
+        <div slot="header" style="font-weight: 500; display: flex; gap: 20px; align-items: center;">
+          <span>预览结果</span>
+          <el-tag size="mini">共 {{ migrateDialog.previewData.total }} 条</el-tag>
+          <el-tag size="mini" type="success">待处理 {{ migrateDialog.previewData.pending }} 条</el-tag>
+          <el-tag size="mini" type="info" v-if="migrateDialog.previewData.already > 0">已迁移 {{ migrateDialog.previewData.already }} 条（将跳过）</el-tag>
+        </div>
         <el-table :data="migrateDialog.previewData.preview" border stripe size="small" max-height="300">
           <el-table-column prop="_id" label="记录ID" width="200" show-overflow-tooltip></el-table-column>
           <el-table-column prop="old_user_id" label="原用户ID" width="200">
