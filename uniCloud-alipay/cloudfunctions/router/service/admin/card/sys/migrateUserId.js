@@ -24,19 +24,22 @@ module.exports = {
 			// ==================== 备份 ====================
 			if (action === 'backup') {
 				const batchSize = 1000;
-				let offset = 0;
+				let lastId = '';
 				let allRecords = [];
 
 				while (true) {
-					const batch = await db.collection('vk-card-key')
+					const q = lastId
+						? db.collection('vk-card-key').where({ _id: _.gt(lastId) })
+						: db.collection('vk-card-key');
+					const batch = await q
 						.field({ _id: true, card_code: true, buy_user_id: true })
-						.skip(offset)
+						.orderBy('_id', 'asc')
 						.limit(batchSize)
 						.get();
 
 					if (!batch.data || batch.data.length === 0) break;
 					allRecords = allRecords.concat(batch.data);
-					offset += batchSize;
+					lastId = batch.data[batch.data.length - 1]._id;
 					if (batch.data.length < batchSize) break;
 				}
 
@@ -54,6 +57,7 @@ module.exports = {
 				// 取前 20 条做预览
 				const sample = await db.collection('vk-card-key')
 					.field({ _id: true, card_code: true, buy_user_id: true })
+					.orderBy('_id', 'asc')
 					.limit(20)
 					.get();
 
@@ -74,36 +78,42 @@ module.exports = {
 
 			// ==================== 执行 ====================
 			if (action === 'execute') {
-				// 分批读取 + 更新（uniCloud 单次 update 无 where 条件限制，但建议分批）
-				const batchSize = 500;
-				let offset = 0;
+				// 1. 先获取所有不同的 buy_user_id 值
+				// uniCloud group 没有 limit，但不同用户ID数量通常不多
+				const groupRes = await db.collection('vk-card-key')
+					.groupBy('buy_user_id')
+					.groupField('buy_user_id')
+					.get();
+
+				const uniqueIds = (groupRes.data || [])
+					.map(r => r.buy_user_id)
+					.filter(Boolean); // 过滤掉 null/undefined/空
+
+				// 也处理 buy_user_id 为空的记录
+				const hasEmpty = (groupRes.data || []).some(r => !r.buy_user_id);
+
 				let updated = 0;
 
-				while (true) {
-					const batch = await db.collection('vk-card-key')
-						.field({ _id: true, buy_user_id: true })
-						.skip(offset)
-						.limit(batchSize)
-						.get();
-
-					if (!batch.data || batch.data.length === 0) break;
-
-					// 逐条更新（因为每条的旧 ID 不同，新 ID 也不同）
-					for (const record of batch.data) {
-						const oldId = record.buy_user_id || '';
-						const newId = prefix + oldId + suffix;
-						await db.collection('vk-card-key')
-							.doc(record._id)
-							.update({ buy_user_id: newId });
-						updated++;
-					}
-
-					offset += batchSize;
-					if (batch.data.length < batchSize) break;
+				// 2. 按 buy_user_id 分组批量更新（每组一次 where().update() 调用）
+				for (const oldId of uniqueIds) {
+					const newId = prefix + oldId + suffix;
+					const updateRes = await db.collection('vk-card-key')
+						.where({ buy_user_id: oldId })
+						.update({ buy_user_id: newId });
+					updated += updateRes.updated || 0;
 				}
 
-				res.msg = `迁移完成，共更新 ${updated} 条记录`;
-				res.data = { updated, prefix, suffix };
+				// 3. 处理 buy_user_id 为空的记录
+				if (hasEmpty) {
+					const newId = prefix + suffix;
+					const updateRes = await db.collection('vk-card-key')
+						.where({ buy_user_id: _.in([null, '', undefined]) })
+						.update({ buy_user_id: newId });
+					updated += updateRes.updated || 0;
+				}
+
+				res.msg = `迁移完成，共更新 ${updated} 条记录（${uniqueIds.length + (hasEmpty ? 1 : 0)} 组）`;
+				res.data = { updated, groups: uniqueIds.length, prefix, suffix };
 				return res;
 			}
 
