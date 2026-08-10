@@ -18,3 +18,7 @@ npm-debug.log*
 # Temp files
 *.tmp
 *.bak
+
+# 开发日志内部版（不公开）
+dev_docs/articles/internal/
+dev_docs/.drafts/
