@@ -764,6 +764,9 @@
         <el-button type="danger" size="small" @click="executeMigration" :loading="migrateDialog.executing" :disabled="!migrateDialog.previewed">
           <i class="el-icon-check"></i> 第三步：确认执行
         </el-button>
+        <span v-if="migrateDialog.executeProgress" style="color: #E6A23C; font-size: 12px; margin-left: 10px;">
+          <i class="el-icon-loading"></i> {{ migrateDialog.executeProgress }}
+        </span>
       </div>
 
       <!-- 备份结果 -->
@@ -777,27 +780,35 @@
 
       <!-- 预览结果 -->
       <el-card v-if="migrateDialog.previewData" shadow="never">
-        <div slot="header" style="font-weight: 500; display: flex; gap: 20px; align-items: center;">
+        <div slot="header" style="font-weight: 500; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
           <span>预览结果</span>
-          <el-tag size="mini">共 {{ migrateDialog.previewData.total }} 条</el-tag>
-          <el-tag size="mini" type="success">待处理 {{ migrateDialog.previewData.pending }} 条</el-tag>
-          <el-tag size="mini" type="info" v-if="migrateDialog.previewData.already > 0">已迁移 {{ migrateDialog.previewData.already }} 条（将跳过）</el-tag>
+          <el-tag size="mini">用户 {{ migrateDialog.previewData.total_users || migrateDialog.previewData.total }} 个</el-tag>
+          <el-tag size="mini" type="success">待处理 {{ migrateDialog.previewData.pending }} 个</el-tag>
+          <el-tag size="mini" type="info" v-if="migrateDialog.previewData.already > 0">跳过 {{ migrateDialog.previewData.already }} 个</el-tag>
+        </div>
+        <!-- 关联表统计 -->
+        <div v-if="migrateDialog.previewData.ref_counts" style="margin-bottom: 15px; padding: 10px; background: #f5f7fa; border-radius: 4px;">
+          <span style="font-size: 12px; color: #606266; font-weight: 500;">将同步更新的关联表：</span>
+          <el-tag v-for="(count, table) in migrateDialog.previewData.ref_counts" :key="table" size="mini" style="margin-left: 8px;" type="warning">
+            {{ table }} ({{ count }}条)
+          </el-tag>
         </div>
         <el-table :data="migrateDialog.previewData.preview" border stripe size="small" max-height="300">
-          <el-table-column prop="_id" label="记录ID" width="200" show-overflow-tooltip></el-table-column>
-          <el-table-column prop="old_user_id" label="原用户ID" width="200">
+          <el-table-column prop="_id" label="原用户ID" width="240">
             <template slot-scope="scope">
-              <span style="color: #F56C6C;">{{ scope.row.old_user_id }}</span>
+              <span style="color: #F56C6C; font-family: monospace;">{{ scope.row._id }}</span>
             </template>
           </el-table-column>
           <el-table-column label="→" width="40" align="center">
             <template><i class="el-icon-right"></i></template>
           </el-table-column>
-          <el-table-column prop="new_user_id" label="新用户ID" min-width="200">
+          <el-table-column prop="new_id" label="新用户ID" width="240">
             <template slot-scope="scope">
-              <span style="color: #67C23A; font-weight: 500;">{{ scope.row.new_user_id }}</span>
+              <span style="color: #67C23A; font-weight: 500; font-family: monospace;">{{ scope.row.new_id }}</span>
             </template>
           </el-table-column>
+          <el-table-column prop="username" label="用户名" width="120"></el-table-column>
+          <el-table-column prop="nickname" label="昵称" min-width="120"></el-table-column>
         </el-table>
       </el-card>
 
@@ -964,6 +975,7 @@ export default {
         previewing: false,
         executing: false,
         previewed: false,
+        executeProgress: '',
         backupData: null,
         previewData: null,
       },
@@ -1803,6 +1815,7 @@ export default {
       that.migrateDialog.backupData = null;
       that.migrateDialog.previewData = null;
       that.migrateDialog.previewed = false;
+      that.migrateDialog.executeProgress = '';
     },
     // 第一步：备份
     async backupUserIds() {
@@ -1866,44 +1879,92 @@ export default {
         that.migrateDialog.previewing = false;
       }
     },
-    // 第三步：执行
+    // 第三步：执行（自动分批续接）
     async executeMigration() {
       if (!that.migrateDialog.previewed) {
         vk.toast('请先预览变更');
         return;
       }
-      const total = that.migrateDialog.previewData ? that.migrateDialog.previewData.total : 0;
+      const pd = that.migrateDialog.previewData;
+      const total = pd ? (pd.pending || pd.total) : 0;
       try {
         await that.$confirm(
-          `确定要执行用户ID迁移吗？\n\n规则：${that.migrateDialog.prefix || ''}原ID${that.migrateDialog.suffix || ''}\n${that.migrateDialog.skip_prefix ? '跳过前缀：' + that.migrateDialog.skip_prefix + '\n' : ''}待处理约 ${total} 条\n\n建议先下载备份！`,
+          `<div style="line-height: 1.8;">
+            <p><b>确定要执行全量用户ID迁移吗？</b></p>
+            <p>规则：${that.migrateDialog.prefix || ''}原ID${that.migrateDialog.suffix || ''}</p>
+            ${that.migrateDialog.skip_prefix ? '<p>跳过前缀：' + that.migrateDialog.skip_prefix + '</p>' : ''}
+            <p>待处理：约 ${total} 个用户</p>
+            <p style="color: #E6A23C;">⚠️ 迁移后所有用户需重新登录</p>
+            <p style="color: #F56C6C;">⚠️ 建议先下载备份！</p>
+          </div>`,
           '确认迁移',
           {
             confirmButtonText: '确定执行',
             cancelButtonText: '取消',
-            type: 'warning'
+            type: 'warning',
+            dangerouslyUseHTMLString: true,
           }
         );
       } catch { return; }
 
       that.migrateDialog.executing = true;
+      let startFrom = '';
+      let batchNum = 0;
+      let totalUpdated = 0;
+      let totalSkipped = 0;
+      let allErrors = [];
+
       try {
-        const res = await vk.callFunction({
-          url: "admin/card/sys/migrateUserId",
-          data: {
-            action: 'execute',
-            prefix: that.migrateDialog.prefix,
-            suffix: that.migrateDialog.suffix,
-            skip_prefix: that.migrateDialog.skip_prefix,
-          },
-        });
-        if (res.code === 0) {
-          vk.toast(res.msg, 'success');
-          that.migrateDialog.previewed = false;
-          // 刷新表格
-          that.$refs.table1.refresh();
-        } else {
-          vk.toast(res.msg || '执行失败');
+        while (true) {
+          batchNum++;
+          that.migrateDialog.executeProgress = `正在处理第 ${batchNum} 批...（已更新 ${totalUpdated} 个）`;
+
+          const res = await vk.callFunction({
+            url: "admin/card/sys/migrateUserId",
+            data: {
+              action: 'execute',
+              prefix: that.migrateDialog.prefix,
+              suffix: that.migrateDialog.suffix,
+              skip_prefix: that.migrateDialog.skip_prefix,
+              start_from: startFrom,
+              batch_size: 50,
+            },
+          });
+
+          if (res.code !== 0) {
+            vk.toast(res.msg || '执行失败');
+            break;
+          }
+
+          const d = res.data || {};
+          totalUpdated += d.batch_updated || 0;
+          totalSkipped += d.batch_skipped || 0;
+          if (d.batch_errors && d.batch_errors.length > 0) {
+            allErrors = allErrors.concat(d.batch_errors);
+          }
+
+          // 更新进度显示
+          that.migrateDialog.executeProgress = `第 ${batchNum} 批完成，累计更新 ${totalUpdated} 个，跳过 ${totalSkipped} 个`;
+
+          // 完成或无后续批次
+          if (d.done || !d.has_more) {
+            break;
+          }
+
+          // 续接下一批
+          startFrom = d.last_id;
         }
+
+        // 最终结果
+        let msg = `迁移完成！共 ${batchNum} 批，更新 ${totalUpdated} 个用户，跳过 ${totalSkipped} 个`;
+        if (allErrors.length > 0) {
+          msg += `，${allErrors.length} 个失败`;
+          console.error('迁移失败详情:', allErrors);
+        }
+        vk.toast(msg, 'success');
+        that.migrateDialog.previewed = false;
+        that.migrateDialog.executeProgress = '';
+        that.$refs.table1.refresh();
       } catch (err) {
         vk.toast('执行失败：' + (err.message || '未知错误'));
       } finally {

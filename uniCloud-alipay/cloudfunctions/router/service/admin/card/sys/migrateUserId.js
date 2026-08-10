@@ -1,11 +1,13 @@
 /**
- * 批量迁移用户ID（给所有 buy_user_id 加前缀/后缀）
+ * 全量用户ID迁移（更新 uni-id-users._id + 所有关联表）
  * @url admin/card/sys/migrateUserId
  * 
  * @param {String} action       backup | preview | execute
  * @param {String} prefix       要加的前缀（可选）
  * @param {String} suffix       要加的后缀（可选）
  * @param {String} skip_prefix  跳过已包含此前缀的记录（可选）
+ * @param {String} start_from   续接：从哪个 _id 开始（空=从头）
+ * @param {Number} batch_size   本批次处理多少个用户（默认 50）
  */
 module.exports = {
 	main: async (event) => {
@@ -13,137 +15,226 @@ module.exports = {
 		let { vk, db, _ } = util;
 		let res = { code: 0, msg: '' };
 
-		let { action, prefix, suffix, skip_prefix } = data;
+		let { action, prefix, suffix, skip_prefix, start_from, batch_size } = data;
 		prefix = (prefix || '').trim();
 		suffix = (suffix || '').trim();
 		skip_prefix = (skip_prefix || '').trim();
+		batch_size = Math.min(Math.max(batch_size || 50, 1), 200);
 
-		// 只有 preview 和 execute 才需要前后缀
 		if (action !== 'backup' && !prefix && !suffix) {
 			return { code: -1, msg: '请至少填写前缀或后缀' };
 		}
 
-		// 判断是否需要跳过
 		const shouldSkip = (id) => skip_prefix && id && id.startsWith(skip_prefix);
+		const makeNewId = (oldId) => prefix + (oldId || '') + suffix;
+
+		// 需要同步更新的关联表
+		const REF_TABLES = [
+			{ table: 'vk-card-key',         field: 'buy_user_id' },
+			{ table: 'vk-user-points',      field: 'user_id' },
+			{ table: 'vk-points-log',       field: 'user_id' },
+			{ table: 'vk-blacklist',        field: 'user_id' },
+			{ table: 'vk-invite-rebate-log', field: 'user_id' },
+		];
 
 		try {
 			// ==================== 备份 ====================
 			if (action === 'backup') {
-				const batchSize = 1000;
+				const pageSize = 1000;
 				let lastId = '';
-				let allRecords = [];
+				let allUsers = [];
 
 				while (true) {
 					const q = lastId
-						? db.collection('vk-card-key').where({ _id: _.gt(lastId) })
-						: db.collection('vk-card-key');
+						? db.collection('uni-id-users').where({ _id: _.gt(lastId) })
+						: db.collection('uni-id-users');
 					const batch = await q
-						.field({ _id: true, card_code: true, buy_user_id: true })
+						.field({ _id: true, username: true, nickname: true, mobile: true })
 						.orderBy('_id', 'asc')
-						.limit(batchSize)
+						.limit(pageSize)
 						.get();
 
 					if (!batch.data || batch.data.length === 0) break;
-					allRecords = allRecords.concat(batch.data);
+					allUsers = allUsers.concat(batch.data);
 					lastId = batch.data[batch.data.length - 1]._id;
-					if (batch.data.length < batchSize) break;
+					if (batch.data.length < pageSize) break;
+				}
+
+				let refCounts = {};
+				for (const ref of REF_TABLES) {
+					const c = await db.collection(ref.table).count();
+					refCounts[ref.table] = c.total || 0;
 				}
 
 				res.data = {
-					total: allRecords.length,
-					records: allRecords,
+					total_users: allUsers.length,
+					users: allUsers,
+					ref_counts: refCounts,
 					backup_time: Date.now(),
 				};
-				res.msg = `备份完成，共 ${allRecords.length} 条记录`;
+				res.msg = `备份完成，共 ${allUsers.length} 个用户`;
 				return res;
 			}
 
 			// ==================== 预览 ====================
 			if (action === 'preview') {
-				const countAll = await db.collection('vk-card-key').count();
+				const countAll = await db.collection('uni-id-users').count();
 				const totalCount = countAll.total || 0;
 
-				// 取前 200 条在 JS 层过滤做预览
-				const all = await db.collection('vk-card-key')
-					.field({ _id: true, buy_user_id: true })
+				const sample = await db.collection('uni-id-users')
+					.field({ _id: true, username: true, nickname: true })
 					.orderBy('_id', 'asc')
-					.limit(200)
+					.limit(100)
 					.get();
 
 				let alreadyCount = 0;
 				let pendingSample = [];
 
-				for (const r of (all.data || [])) {
-					if (shouldSkip(r.buy_user_id)) {
+				for (const u of (sample.data || [])) {
+					if (shouldSkip(u._id)) {
 						alreadyCount++;
 					} else {
 						if (pendingSample.length < 20) {
 							pendingSample.push({
-								_id: r._id,
-								old_user_id: r.buy_user_id || '(空)',
-								new_user_id: prefix + (r.buy_user_id || '') + suffix,
+								_id: u._id,
+								username: u.username || '-',
+								nickname: u.nickname || '-',
+								new_id: makeNewId(u._id),
 							});
 						}
 					}
 				}
 
-				// 粗估：从前 200 条的比例推算总数
-				const ratio = all.data && all.data.length > 0 ? alreadyCount / all.data.length : 0;
+				const sampleSize = sample.data ? sample.data.length : 0;
+				const ratio = sampleSize > 0 ? alreadyCount / sampleSize : 0;
 				const estimatedAlready = Math.round(totalCount * ratio);
-				const estimatedPending = totalCount - estimatedAlready;
+
+				let refCounts = {};
+				for (const ref of REF_TABLES) {
+					const c = await db.collection(ref.table).count();
+					refCounts[ref.table] = c.total || 0;
+				}
 
 				res.data = {
-					total: totalCount,
+					total_users: totalCount,
 					already: estimatedAlready,
-					pending: estimatedPending,
-					sample_size: all.data ? all.data.length : 0,
+					pending: totalCount - estimatedAlready,
+					ref_counts: refCounts,
 					preview: pendingSample,
 				};
-				res.msg = `共 ${totalCount} 条，约 ${estimatedAlready} 条将跳过，约 ${estimatedPending} 条待处理`;
+				res.msg = `共 ${totalCount} 个用户，约 ${estimatedAlready} 个将跳过，约 ${totalCount - estimatedAlready} 个待处理`;
 				return res;
 			}
 
-			// ==================== 执行 ====================
+			// ==================== 执行（分批续接） ====================
 			if (action === 'execute') {
-				// 获取所有不同的 buy_user_id 值
-				const groupRes = await db.collection('vk-card-key')
-					.groupBy('buy_user_id')
-					.groupField('buy_user_id')
-					.get();
+				// 读取一批用户
+				let query = db.collection('uni-id-users')
+					.field({ _id: true })
+					.orderBy('_id', 'asc')
+					.limit(batch_size);
 
-				const uniqueIds = (groupRes.data || [])
-					.map(r => r.buy_user_id)
-					.filter(Boolean);
+				if (start_from) {
+					query = db.collection('uni-id-users')
+						.where({ _id: _.gt(start_from) })
+						.field({ _id: true })
+						.orderBy('_id', 'asc')
+						.limit(batch_size);
+				}
 
-				const hasEmpty = (groupRes.data || []).some(r => !r.buy_user_id);
+				const batch = await query.get();
+				const users = batch.data || [];
+
+				if (users.length === 0) {
+					return {
+						code: 0,
+						msg: '全部迁移完成',
+						data: { done: true, updated: 0, skipped: 0, total_processed: 0 },
+					};
+				}
 
 				let updated = 0;
 				let skipped = 0;
+				let errors = [];
+				let lastProcessedId = start_from || '';
 
-				for (const oldId of uniqueIds) {
-					// 跳过已有 skip_prefix 的记录
+				for (const user of users) {
+					const oldId = user._id;
+
 					if (shouldSkip(oldId)) {
 						skipped++;
+						lastProcessedId = oldId;
 						continue;
 					}
-					const newId = prefix + oldId + suffix;
-					const updateRes = await db.collection('vk-card-key')
-						.where({ buy_user_id: oldId })
-						.update({ buy_user_id: newId });
-					updated += updateRes.updated || 0;
+
+					const targetId = makeNewId(oldId);
+
+					try {
+						// 检查新 ID 是否已存在
+						const exists = await db.collection('uni-id-users')
+							.where({ _id: targetId })
+							.count();
+						if (exists.total > 0) {
+							errors.push(`${oldId}: 目标ID已存在`);
+							lastProcessedId = oldId;
+							continue;
+						}
+
+						// 读取完整用户记录
+						const userDoc = await db.collection('uni-id-users')
+							.doc(oldId)
+							.get();
+						if (!userDoc.data) {
+							errors.push(`${oldId}: 记录不存在`);
+							lastProcessedId = oldId;
+							continue;
+						}
+
+						// 创建新 ID 用户，清空 token 强制重新登录
+						const newData = { ...userDoc.data, _id: targetId, token: [] };
+						await db.collection('uni-id-users').add(newData);
+
+						// 更新所有关联表
+						for (const ref of REF_TABLES) {
+							await db.collection(ref.table)
+								.where({ [ref.field]: oldId })
+								.update({ [ref.field]: targetId });
+						}
+
+						// 删除旧记录
+						await db.collection('uni-id-users').doc(oldId).remove();
+
+						updated++;
+					} catch (err) {
+						errors.push(`${oldId}: ${err.message}`);
+					}
+
+					lastProcessedId = oldId;
 				}
 
-				// 处理 buy_user_id 为空的记录
-				if (hasEmpty && !shouldSkip('')) {
-					const newId = prefix + suffix;
-					const updateRes = await db.collection('vk-card-key')
-						.where({ buy_user_id: _.in([null, '', undefined]) })
-						.update({ buy_user_id: newId });
-					updated += updateRes.updated || 0;
+				// 判断是否还有后续批次
+				const hasMore = users.length >= batch_size;
+
+				res.code = 0;
+				res.data = {
+					done: !hasMore,
+					has_more: hasMore,
+					last_id: lastProcessedId,
+					batch_updated: updated,
+					batch_skipped: skipped,
+					batch_errors: errors,
+				};
+
+				if (hasMore) {
+					res.msg = `本批次完成：更新 ${updated}，跳过 ${skipped}，还有后续批次`;
+				} else {
+					res.msg = `全部完成：最后批次更新 ${updated}，跳过 ${skipped}`;
 				}
 
-				res.msg = `迁移完成，更新 ${updated} 条，跳过 ${skipped} 组`;
-				res.data = { updated, skipped, groups: uniqueIds.length, prefix, suffix, skip_prefix };
+				if (errors.length > 0) {
+					res.msg += `，${errors.length} 个失败`;
+				}
+
 				return res;
 			}
 
