@@ -1,10 +1,11 @@
 /**
- * 批量迁移用户ID（给所有 buy_user_id 加前缀/后缀，自动跳过已迁移的）
+ * 批量迁移用户ID（给所有 buy_user_id 加前缀/后缀）
  * @url admin/card/sys/migrateUserId
  * 
- * @param {String} action    backup | preview | execute
- * @param {String} prefix    要加的前缀（可选）
- * @param {String} suffix    要加的后缀（可选）
+ * @param {String} action       backup | preview | execute
+ * @param {String} prefix       要加的前缀（可选）
+ * @param {String} suffix       要加的后缀（可选）
+ * @param {String} skip_prefix  跳过已包含此前缀的记录（可选）
  */
 module.exports = {
 	main: async (event) => {
@@ -12,14 +13,18 @@ module.exports = {
 		let { vk, db, _ } = util;
 		let res = { code: 0, msg: '' };
 
-		let { action, prefix, suffix } = data;
+		let { action, prefix, suffix, skip_prefix } = data;
 		prefix = (prefix || '').trim();
 		suffix = (suffix || '').trim();
+		skip_prefix = (skip_prefix || '').trim();
 
 		// 只有 preview 和 execute 才需要前后缀
 		if (action !== 'backup' && !prefix && !suffix) {
 			return { code: -1, msg: '请至少填写前缀或后缀' };
 		}
+
+		// 判断是否需要跳过
+		const shouldSkip = (id) => skip_prefix && id && id.startsWith(skip_prefix);
 
 		try {
 			// ==================== 备份 ====================
@@ -55,55 +60,46 @@ module.exports = {
 
 			// ==================== 预览 ====================
 			if (action === 'preview') {
-				// 统计已迁移和未迁移的数量
 				const countAll = await db.collection('vk-card-key').count();
 				const totalCount = countAll.total || 0;
 
-				// 统计已包含前缀的记录数
+				// 取前 200 条在 JS 层过滤做预览
+				const all = await db.collection('vk-card-key')
+					.field({ _id: true, buy_user_id: true })
+					.orderBy('_id', 'asc')
+					.limit(200)
+					.get();
+
 				let alreadyCount = 0;
-				if (prefix) {
-					const c1 = await db.collection('vk-card-key')
-						.where({ buy_user_id: db.RegExp({ regexp: `^${escapeRegExp(prefix)}`, options: '' }) })
-						.count();
-					alreadyCount = c1.total || 0;
+				let pendingSample = [];
+
+				for (const r of (all.data || [])) {
+					if (shouldSkip(r.buy_user_id)) {
+						alreadyCount++;
+					} else {
+						if (pendingSample.length < 20) {
+							pendingSample.push({
+								_id: r._id,
+								old_user_id: r.buy_user_id || '(空)',
+								new_user_id: prefix + (r.buy_user_id || '') + suffix,
+							});
+						}
+					}
 				}
 
-				const pendingCount = totalCount - alreadyCount;
+				// 粗估：从前 200 条的比例推算总数
+				const ratio = all.data && all.data.length > 0 ? alreadyCount / all.data.length : 0;
+				const estimatedAlready = Math.round(totalCount * ratio);
+				const estimatedPending = totalCount - estimatedAlready;
 
-				// 取未迁移的前 20 条做预览
-				let sampleQuery = db.collection('vk-card-key')
-					.field({ _id: true, card_code: true, buy_user_id: true })
-					.orderBy('_id', 'asc');
-
-				if (prefix) {
-					// 取不以 prefix 开头的记录
-					// uniCloud 不支持 $not 正则，用分页跳过已迁移的
-					// 简化：取前 100 条，在 JS 层过滤
-					const all = await sampleQuery.limit(100).get();
-					const filtered = (all.data || [])
-						.filter(r => !(r.buy_user_id && r.buy_user_id.startsWith(prefix)))
-						.slice(0, 20);
-
-					const preview = filtered.map(r => ({
-						_id: r._id,
-						old_user_id: r.buy_user_id || '(空)',
-						new_user_id: prefix + (r.buy_user_id || '') + suffix,
-						already: false,
-					}));
-
-					res.data = { total: totalCount, already: alreadyCount, pending: pendingCount, preview };
-				} else {
-					const sample = await sampleQuery.limit(20).get();
-					const preview = (sample.data || []).map(r => ({
-						_id: r._id,
-						old_user_id: r.buy_user_id || '(空)',
-						new_user_id: (prefix || '') + (r.buy_user_id || '') + suffix,
-						already: false,
-					}));
-					res.data = { total: totalCount, already: alreadyCount, pending: pendingCount, preview };
-				}
-
-				res.msg = `共 ${totalCount} 条，已迁移 ${alreadyCount} 条，待处理 ${pendingCount} 条`;
+				res.data = {
+					total: totalCount,
+					already: estimatedAlready,
+					pending: estimatedPending,
+					sample_size: all.data ? all.data.length : 0,
+					preview: pendingSample,
+				};
+				res.msg = `共 ${totalCount} 条，约 ${estimatedAlready} 条将跳过，约 ${estimatedPending} 条待处理`;
 				return res;
 			}
 
@@ -124,10 +120,9 @@ module.exports = {
 				let updated = 0;
 				let skipped = 0;
 
-				// 按 buy_user_id 分组批量更新，自动跳过已有前缀的
 				for (const oldId of uniqueIds) {
-					// 跳过已经包含前缀的记录
-					if (prefix && oldId.startsWith(prefix)) {
+					// 跳过已有 skip_prefix 的记录
+					if (shouldSkip(oldId)) {
 						skipped++;
 						continue;
 					}
@@ -139,7 +134,7 @@ module.exports = {
 				}
 
 				// 处理 buy_user_id 为空的记录
-				if (hasEmpty) {
+				if (hasEmpty && !shouldSkip('')) {
 					const newId = prefix + suffix;
 					const updateRes = await db.collection('vk-card-key')
 						.where({ buy_user_id: _.in([null, '', undefined]) })
@@ -147,8 +142,8 @@ module.exports = {
 					updated += updateRes.updated || 0;
 				}
 
-				res.msg = `迁移完成，更新 ${updated} 条，跳过 ${skipped} 组已迁移记录`;
-				res.data = { updated, skipped, groups: uniqueIds.length, prefix, suffix };
+				res.msg = `迁移完成，更新 ${updated} 条，跳过 ${skipped} 组`;
+				res.data = { updated, skipped, groups: uniqueIds.length, prefix, suffix, skip_prefix };
 				return res;
 			}
 
@@ -162,8 +157,3 @@ module.exports = {
 		return res;
 	}
 };
-
-// 转义正则特殊字符
-function escapeRegExp(str) {
-	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}

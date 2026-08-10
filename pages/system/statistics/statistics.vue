@@ -719,13 +719,13 @@
       <!-- 前缀后缀输入 -->
       <el-card shadow="never" style="margin-bottom: 15px;">
         <div slot="header" style="font-weight: 500;">迁移规则</div>
-        <el-form :inline="true" size="small">
+        <el-form size="small" label-width="80px">
           <el-form-item label="前缀">
             <el-input
               v-model="migrateDialog.prefix"
-              placeholder="可选，如 new_"
+              placeholder="可选，如 new-"
               clearable
-              style="width: 200px;"
+              style="width: 300px;"
             ></el-input>
           </el-form-item>
           <el-form-item label="后缀">
@@ -733,8 +733,17 @@
               v-model="migrateDialog.suffix"
               placeholder="可选，如 _v2"
               clearable
-              style="width: 200px;"
+              style="width: 300px;"
             ></el-input>
+          </el-form-item>
+          <el-form-item label="跳过前缀">
+            <el-input
+              v-model="migrateDialog.skip_prefix"
+              placeholder="已包含此前缀的记录将被跳过，如 new-"
+              clearable
+              style="width: 300px;"
+            ></el-input>
+            <span style="color: #909399; font-size: 12px; margin-left: 10px;">避免重复迁移</span>
           </el-form-item>
           <el-form-item>
             <span style="color: #909399; font-size: 12px;">
@@ -950,6 +959,7 @@ export default {
         visible: false,
         prefix: '',
         suffix: '',
+        skip_prefix: '',
         backing: false,
         previewing: false,
         executing: false,
@@ -1789,6 +1799,7 @@ export default {
       that.migrateDialog.visible = true;
       that.migrateDialog.prefix = '';
       that.migrateDialog.suffix = '';
+      that.migrateDialog.skip_prefix = '';
       that.migrateDialog.backupData = null;
       that.migrateDialog.previewData = null;
       that.migrateDialog.previewed = false;
@@ -1839,6 +1850,7 @@ export default {
             action: 'preview',
             prefix: that.migrateDialog.prefix,
             suffix: that.migrateDialog.suffix,
+            skip_prefix: that.migrateDialog.skip_prefix,
           },
         });
         if (res.code === 0) {
@@ -1863,7 +1875,7 @@ export default {
       const total = that.migrateDialog.previewData ? that.migrateDialog.previewData.total : 0;
       try {
         await that.$confirm(
-          `确定要对 ${total} 条卡密记录执行用户ID迁移吗？\n\n规则：${that.migrateDialog.prefix || ''}原ID${that.migrateDialog.suffix || ''}\n\n建议先下载备份！`,
+          `确定要执行用户ID迁移吗？\n\n规则：${that.migrateDialog.prefix || ''}原ID${that.migrateDialog.suffix || ''}\n${that.migrateDialog.skip_prefix ? '跳过前缀：' + that.migrateDialog.skip_prefix + '\n' : ''}待处理约 ${total} 条\n\n建议先下载备份！`,
           '确认迁移',
           {
             confirmButtonText: '确定执行',
@@ -1881,6 +1893,7 @@ export default {
             action: 'execute',
             prefix: that.migrateDialog.prefix,
             suffix: that.migrateDialog.suffix,
+            skip_prefix: that.migrateDialog.skip_prefix,
           },
         });
         if (res.code === 0) {
