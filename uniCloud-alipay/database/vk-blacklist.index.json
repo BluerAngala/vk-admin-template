@@ -1,0 +1,9 @@
+{
+  "bsonType": "object",
+  "fields": [
+    {
+      "path": "user_id",
+      "unique": true
+    }
+  ]
+}

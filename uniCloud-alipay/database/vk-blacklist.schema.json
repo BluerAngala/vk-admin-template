@@ -1,0 +1,35 @@
+{
+  "bsonType": "object",
+  "description": "用户黑名单表",
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "user_id": {
+      "bsonType": "string",
+      "description": "被封禁的用户ID",
+      "title": "用户ID"
+    },
+    "reason": {
+      "bsonType": "string",
+      "description": "封禁原因",
+      "title": "封禁原因"
+    },
+    "_add_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "title": "创建时间"
+    },
+    "add_by": {
+      "bsonType": "string",
+      "description": "操作人（管理员ID）",
+      "title": "操作人"
+    }
+  }
+}
