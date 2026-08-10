@@ -56,6 +56,14 @@
           >
             黑名单管理
           </el-button>
+          <el-button 
+            type="warning" 
+            size="small" 
+            style="margin-left: 10px;"
+            @click="showMigrateDialog"
+          >
+            用户ID迁移
+          </el-button>
           <el-dropdown 
             split-button 
             type="warning" 
@@ -692,6 +700,97 @@
         <el-button @click="blacklistDialog.visible = false">关 闭</el-button>
       </span>
     </el-dialog>
+
+    <!-- 用户ID迁移弹窗 -->
+    <el-dialog
+      title="用户ID批量迁移"
+      :visible.sync="migrateDialog.visible"
+      width="850px"
+      :close-on-click-modal="false"
+    >
+      <el-alert
+        title="给所有卡密的 buy_user_id 统一添加前缀/后缀，每条记录基于原 ID 拼接"
+        type="info"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 20px;"
+      ></el-alert>
+
+      <!-- 前缀后缀输入 -->
+      <el-card shadow="never" style="margin-bottom: 15px;">
+        <div slot="header" style="font-weight: 500;">迁移规则</div>
+        <el-form :inline="true" size="small">
+          <el-form-item label="前缀">
+            <el-input
+              v-model="migrateDialog.prefix"
+              placeholder="可选，如 new_"
+              clearable
+              style="width: 200px;"
+            ></el-input>
+          </el-form-item>
+          <el-form-item label="后缀">
+            <el-input
+              v-model="migrateDialog.suffix"
+              placeholder="可选，如 _v2"
+              clearable
+              style="width: 200px;"
+            ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <span style="color: #909399; font-size: 12px;">
+              示例：<code>原ID abc123</code> → <code style="color: #409EFF;">{{ migrateDialog.prefix }}abc123{{ migrateDialog.suffix }}</code>
+            </span>
+          </el-form-item>
+        </el-form>
+      </el-card>
+
+      <!-- 操作按钮 -->
+      <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+        <el-button type="info" size="small" @click="backupUserIds" :loading="migrateDialog.backing">
+          <i class="el-icon-download"></i> 第一步：备份数据
+        </el-button>
+        <el-button type="primary" size="small" @click="previewMigration" :loading="migrateDialog.previewing">
+          <i class="el-icon-view"></i> 第二步：预览变更
+        </el-button>
+        <el-button type="danger" size="small" @click="executeMigration" :loading="migrateDialog.executing" :disabled="!migrateDialog.previewed">
+          <i class="el-icon-check"></i> 第三步：确认执行
+        </el-button>
+      </div>
+
+      <!-- 备份结果 -->
+      <el-card v-if="migrateDialog.backupData" shadow="never" style="margin-bottom: 15px;">
+        <div slot="header" style="font-weight: 500;">备份数据（点击下载）</div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <span>共备份 <b>{{ migrateDialog.backupData.total }}</b> 条记录</span>
+          <el-button type="success" size="mini" icon="el-icon-download" @click="downloadBackup">下载 JSON 备份文件</el-button>
+        </div>
+      </el-card>
+
+      <!-- 预览结果 -->
+      <el-card v-if="migrateDialog.previewData" shadow="never">
+        <div slot="header" style="font-weight: 500;">预览结果（共 {{ migrateDialog.previewData.total }} 条，显示前 {{ migrateDialog.previewData.preview.length }} 条）</div>
+        <el-table :data="migrateDialog.previewData.preview" border stripe size="small" max-height="300">
+          <el-table-column prop="_id" label="记录ID" width="200" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="old_user_id" label="原用户ID" width="200">
+            <template slot-scope="scope">
+              <span style="color: #F56C6C;">{{ scope.row.old_user_id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="→" width="40" align="center">
+            <template><i class="el-icon-right"></i></template>
+          </el-table-column>
+          <el-table-column prop="new_user_id" label="新用户ID" min-width="200">
+            <template slot-scope="scope">
+              <span style="color: #67C23A; font-weight: 500;">{{ scope.row.new_user_id }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="migrateDialog.visible = false">关 闭</el-button>
+      </span>
+    </el-dialog>
   </view>
 </template>
 
@@ -840,6 +939,18 @@ export default {
           user_id: '',
           reason: '',
         },
+      },
+      // 用户ID迁移弹窗
+      migrateDialog: {
+        visible: false,
+        prefix: '',
+        suffix: '',
+        backing: false,
+        previewing: false,
+        executing: false,
+        previewed: false,
+        backupData: null,
+        previewData: null,
       },
     };
   },
@@ -1666,6 +1777,119 @@ export default {
       } catch (err) {
         console.error('移除黑名单失败：', err);
         vk.toast('操作失败');
+      }
+    },
+    // ==================== 用户ID迁移 ====================
+    showMigrateDialog() {
+      that.migrateDialog.visible = true;
+      that.migrateDialog.prefix = '';
+      that.migrateDialog.suffix = '';
+      that.migrateDialog.backupData = null;
+      that.migrateDialog.previewData = null;
+      that.migrateDialog.previewed = false;
+    },
+    // 第一步：备份
+    async backupUserIds() {
+      that.migrateDialog.backing = true;
+      try {
+        const res = await vk.callFunction({
+          url: "admin/card/sys/migrateUserId",
+          data: { action: 'backup' },
+        });
+        if (res.code === 0) {
+          that.migrateDialog.backupData = res.data;
+          vk.toast(res.msg, 'success');
+        } else {
+          vk.toast(res.msg || '备份失败');
+        }
+      } catch (err) {
+        vk.toast('备份失败：' + (err.message || '未知错误'));
+      } finally {
+        that.migrateDialog.backing = false;
+      }
+    },
+    // 下载备份文件
+    downloadBackup() {
+      const data = that.migrateDialog.backupData;
+      if (!data) return;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `user_id_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    // 第二步：预览
+    async previewMigration() {
+      if (!that.migrateDialog.prefix && !that.migrateDialog.suffix) {
+        vk.toast('请至少填写前缀或后缀');
+        return;
+      }
+      that.migrateDialog.previewing = true;
+      try {
+        const res = await vk.callFunction({
+          url: "admin/card/sys/migrateUserId",
+          data: {
+            action: 'preview',
+            prefix: that.migrateDialog.prefix,
+            suffix: that.migrateDialog.suffix,
+          },
+        });
+        if (res.code === 0) {
+          that.migrateDialog.previewData = res.data;
+          that.migrateDialog.previewed = true;
+          vk.toast(res.msg, 'success');
+        } else {
+          vk.toast(res.msg || '预览失败');
+        }
+      } catch (err) {
+        vk.toast('预览失败：' + (err.message || '未知错误'));
+      } finally {
+        that.migrateDialog.previewing = false;
+      }
+    },
+    // 第三步：执行
+    async executeMigration() {
+      if (!that.migrateDialog.previewed) {
+        vk.toast('请先预览变更');
+        return;
+      }
+      const total = that.migrateDialog.previewData ? that.migrateDialog.previewData.total : 0;
+      try {
+        await that.$confirm(
+          `确定要对 ${total} 条卡密记录执行用户ID迁移吗？\n\n规则：${that.migrateDialog.prefix || ''}原ID${that.migrateDialog.suffix || ''}\n\n建议先下载备份！`,
+          '确认迁移',
+          {
+            confirmButtonText: '确定执行',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        );
+      } catch { return; }
+
+      that.migrateDialog.executing = true;
+      try {
+        const res = await vk.callFunction({
+          url: "admin/card/sys/migrateUserId",
+          data: {
+            action: 'execute',
+            prefix: that.migrateDialog.prefix,
+            suffix: that.migrateDialog.suffix,
+          },
+        });
+        if (res.code === 0) {
+          vk.toast(res.msg, 'success');
+          that.migrateDialog.previewed = false;
+          // 刷新表格
+          that.$refs.table1.refresh();
+        } else {
+          vk.toast(res.msg || '执行失败');
+        }
+      } catch (err) {
+        vk.toast('执行失败：' + (err.message || '未知错误'));
+      } finally {
+        that.migrateDialog.executing = false;
       }
     },
   },
