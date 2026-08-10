@@ -237,7 +237,143 @@ module.exports = {
 				return res;
 			}
 
-			return { code: -1, msg: '未知操作，请指定 action: backup / preview / execute' };
+			// ==================== 恢复默认（分批续接） ====================
+			if (action === 'revert') {
+				if (!prefix && !suffix) {
+					return { code: -1, msg: '恢复默认需要指定之前添加的前缀或后缀' };
+				}
+
+				// 读取一批用户（含 role 字段，用于跳过管理员）
+				let query = db.collection('uni-id-users')
+					.field({ _id: true, role: true })
+					.orderBy('_id', 'asc')
+					.limit(batch_size);
+
+				if (start_from) {
+					query = db.collection('uni-id-users')
+						.where({ _id: _.gt(start_from) })
+						.field({ _id: true, role: true })
+						.orderBy('_id', 'asc')
+						.limit(batch_size);
+				}
+
+				const batch = await query.get();
+				const users = batch.data || [];
+
+				if (users.length === 0) {
+					return {
+						code: 0,
+						msg: '全部恢复完成',
+						data: { done: true, updated: 0, skipped: 0 },
+					};
+				}
+
+				let updated = 0;
+				let skipped = 0;
+				let errors = [];
+				let lastProcessedId = start_from || '';
+
+				for (const user of users) {
+					const currentId = user._id;
+					const userRole = user.role || [];
+
+					// 跳过管理员
+					if (userRole.includes('admin')) {
+						skipped++;
+						lastProcessedId = currentId;
+						continue;
+					}
+
+					// 只处理包含前缀的记录
+					const hasPrefix = prefix && currentId.startsWith(prefix);
+					const hasSuffix = suffix && currentId.endsWith(suffix);
+
+					if (!hasPrefix && !hasSuffix) {
+						skipped++;
+						lastProcessedId = currentId;
+						continue;
+					}
+
+					// 还原原始 ID：去掉前缀和后缀
+					let originalId = currentId;
+					if (prefix) originalId = originalId.slice(prefix.length);
+					if (suffix) originalId = originalId.slice(0, -suffix.length);
+
+					if (!originalId) {
+						errors.push(`${currentId}: 还原后ID为空，跳过`);
+						lastProcessedId = currentId;
+						continue;
+					}
+
+					try {
+						// 检查原始 ID 是否已存在
+						const exists = await db.collection('uni-id-users')
+							.where({ _id: originalId })
+							.count();
+						if (exists.total > 0) {
+							errors.push(`${currentId}: 原始ID ${originalId} 已存在，跳过`);
+							lastProcessedId = currentId;
+							continue;
+						}
+
+						// 读取完整用户记录
+						const userDoc = await db.collection('uni-id-users')
+							.doc(currentId)
+							.get();
+						if (!userDoc.data) {
+							errors.push(`${currentId}: 记录不存在`);
+							lastProcessedId = currentId;
+							continue;
+						}
+
+						// 创建原始 ID 的记录
+						const restoreData = { ...userDoc.data, _id: originalId, token: [] };
+						await db.collection('uni-id-users').add(restoreData);
+
+						// 更新所有关联表
+						for (const ref of REF_TABLES) {
+							await db.collection(ref.table)
+								.where({ [ref.field]: currentId })
+								.update({ [ref.field]: originalId });
+						}
+
+						// 删除迁移后的记录
+						await db.collection('uni-id-users').doc(currentId).remove();
+
+						updated++;
+					} catch (err) {
+						errors.push(`${currentId}: ${err.message}`);
+					}
+
+					lastProcessedId = currentId;
+				}
+
+				const hasMore = users.length >= batch_size;
+
+				res.code = 0;
+				res.data = {
+					done: !hasMore,
+					has_more: hasMore,
+					last_id: lastProcessedId,
+					batch_updated: updated,
+					batch_skipped: skipped,
+					batch_errors: errors,
+				};
+
+				if (hasMore) {
+					res.msg = `本批次恢复完成：恢复 ${updated}，跳过 ${skipped}，还有后续批次`;
+				} else {
+					res.msg = `全部恢复完成：恢复 ${updated}，跳过 ${skipped}`;
+				}
+
+				if (errors.length > 0) {
+					res.msg += `，${errors.length} 个失败`;
+				}
+
+				return res;
+			}
+
+			return { code: -1, msg: '未知操作，请指定 action: backup / preview / execute / revert' };
 
 		} catch (err) {
 			res.code = -1;

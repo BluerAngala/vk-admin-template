@@ -767,6 +767,13 @@
         <span v-if="migrateDialog.executeProgress" style="color: #E6A23C; font-size: 12px; margin-left: 10px;">
           <i class="el-icon-loading"></i> {{ migrateDialog.executeProgress }}
         </span>
+        <el-divider direction="vertical"></el-divider>
+        <el-button type="warning" size="small" @click="revertMigration" :loading="migrateDialog.reverting">
+          <i class="el-icon-refresh-left"></i> 恢复默认（去除前缀/后缀）
+        </el-button>
+        <span v-if="migrateDialog.revertProgress" style="color: #E6A23C; font-size: 12px; margin-left: 10px;">
+          <i class="el-icon-loading"></i> {{ migrateDialog.revertProgress }}
+        </span>
       </div>
 
       <!-- 备份结果 -->
@@ -976,6 +983,8 @@ export default {
         executing: false,
         previewed: false,
         executeProgress: '',
+        reverting: false,
+        revertProgress: '',
         backupData: null,
         previewData: null,
       },
@@ -1969,6 +1978,76 @@ export default {
         vk.toast('执行失败：' + (err.message || '未知错误'));
       } finally {
         that.migrateDialog.executing = false;
+      }
+    },
+    // 恢复默认（去除前缀/后缀）
+    async revertMigration() {
+      if (!that.migrateDialog.prefix && !that.migrateDialog.suffix) {
+        vk.toast('请填写之前添加的前缀或后缀');
+        return;
+      }
+      try {
+        await that.$confirm(
+          `<div style="line-height: 1.8;">
+            <p><b>确定要恢复默认吗？</b></p>
+            <p>将去除所有用户ID中的前缀「${that.migrateDialog.prefix}」和后缀「${that.migrateDialog.suffix}」</p>
+            <p>同时更新卡密表、积分表、黑名单、邀请返利表</p>
+            <p style="color: #E6A23C;">⚠️ 恢复后所有用户需重新登录</p>
+          </div>`,
+          '确认恢复',
+          {
+            confirmButtonText: '确定恢复',
+            cancelButtonText: '取消',
+            type: 'warning',
+            dangerouslyUseHTMLString: true,
+          }
+        );
+      } catch { return; }
+
+      that.migrateDialog.reverting = true;
+      let startFrom = '';
+      let batchNum = 0;
+      let totalUpdated = 0;
+      let totalSkipped = 0;
+
+      try {
+        while (true) {
+          batchNum++;
+          that.migrateDialog.revertProgress = `正在恢复第 ${batchNum} 批...（已恢复 ${totalUpdated} 个）`;
+
+          const res = await vk.callFunction({
+            url: "admin/card/sys/migrateUserId",
+            data: {
+              action: 'revert',
+              prefix: that.migrateDialog.prefix,
+              suffix: that.migrateDialog.suffix,
+              start_from: startFrom,
+              batch_size: 50,
+            },
+          });
+
+          if (res.code !== 0) {
+            vk.toast(res.msg || '恢复失败');
+            break;
+          }
+
+          const d = res.data || {};
+          totalUpdated += d.batch_updated || 0;
+          totalSkipped += d.batch_skipped || 0;
+
+          that.migrateDialog.revertProgress = `第 ${batchNum} 批完成，累计恢复 ${totalUpdated} 个，跳过 ${totalSkipped} 个`;
+
+          if (d.done || !d.has_more) break;
+          startFrom = d.last_id;
+        }
+
+        vk.toast(`恢复完成！共 ${batchNum} 批，恢复 ${totalUpdated} 个用户`, 'success');
+        that.migrateDialog.revertProgress = '';
+        that.$refs.table1.refresh();
+      } catch (err) {
+        vk.toast('恢复失败：' + (err.message || '未知错误'));
+      } finally {
+        that.migrateDialog.reverting = false;
       }
     },
   },
