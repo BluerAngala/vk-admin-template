@@ -3,7 +3,11 @@
 		<!-- 页面标题 -->
 		<view class="page-header">
 			<div class="header-content">
-				<h2>购买积分</h2>
+				<h2>购买积分
+					<el-tag v-if="payConfig.store_name" type="success" size="small" style="margin-left: 10px; vertical-align: middle;">
+						{{ payConfig.store_name }}
+					</el-tag>
+				</h2>
 				<p>请按需选择合适的积分套餐，开启您的会员之旅！</p>
 			</div>
 		</view>
@@ -204,14 +208,23 @@ export default {
 			repairTradeNo: '',
 			repairLoading: false,
 			repairResult: null,
-			// 积分套餐配置（与支付平台商品对应）
+			// 支付接口配置（后台「支付接口配置」页面维护，前端加载失败时用默认值兜底）
+			payConfig: {
+				base_url: 'https://yunxiangit.com.cn',
+				channel_id: 3,
+				query_password: '',
+				store_name: '',
+				pay_order_path: '/shopApi/Pay/order',
+				pay_query_path: '/shopApi/Pay/query'
+			},
+			// 积分套餐配置（与支付平台商品对应，goods_key 为兜底，实际以后台「支付接口配置」为准）
 			packages: [
-				{ id: 1, name: '体验套餐（10积分）', points: 10, price: 10, discount: '', description: '适合新手体验', recommended: false, goods_key: '1eoood' },
-				{ id: 2, name: '基础套餐（50积分）', points: 50, price: 45, discount: '省5元', description: '性价比之选', recommended: false, goods_key: '3x529g' },
-				{ id: 3, name: '超值套餐（100积分）', points: 100, price: 90, discount: '省10元', description: '最受欢迎', recommended: true, goods_key: '5jrm9q' },
-				{ id: 4, name: '豪华套餐（300积分）', points: 300, price: 270, discount: '省30元', description: '超值优惠', recommended: false, goods_key: 'ici991' },
-				{ id: 5, name: '至尊套餐（500积分）', points: 500, price: 450, discount: '省50元', description: '刚需必选', recommended: false, goods_key: '2d0h8p' },
-				{ id: 6, name: '终极套餐（1000积分）', points: 1000, price: 900, discount: '省100元', description: '土豪专属', recommended: false, goods_key: 'et8wmn' }
+				{ id: 1, name: '体验套餐（10积分）', points: 10, price: 10, discount: '', description: '适合新手体验', recommended: false, goods_key: 't1hw3w' },
+				{ id: 2, name: '基础套餐（50积分）', points: 50, price: 45, discount: '省5元', description: '性价比之选', recommended: false, goods_key: 'u4zjhq' },
+				{ id: 3, name: '超值套餐（100积分）', points: 100, price: 90, discount: '省10元', description: '最受欢迎', recommended: true, goods_key: 'mw9di3' },
+				{ id: 4, name: '豪华套餐（300积分）', points: 300, price: 270, discount: '省30元', description: '超值优惠', recommended: false, goods_key: '8wouhk' },
+				{ id: 5, name: '至尊套餐（500积分）', points: 500, price: 450, discount: '省50元', description: '刚需必选', recommended: false, goods_key: 'qv19cx' },
+				{ id: 6, name: '终极套餐（1000积分）', points: 1000, price: 900, discount: '省100元', description: '土豪专属', recommended: false, goods_key: 'y3qiel' }
 			]
 		};
 	},
@@ -228,7 +241,45 @@ export default {
 	onHide() {},
 	onUnload() { this.clearPollingTimer(); },
 	methods: {
-		init() { this.loadUserPoints(); },
+		init() {
+			this.loadUserPoints();
+			this.loadPayConfig();
+		},
+
+		// 加载支付接口配置（后台维护，失败时用默认值兜底）
+		loadPayConfig() {
+			vk.callFunction({
+				url: 'admin/points/kh/getPayConfig',
+				success: (data) => {
+					const cfg = data.data || {};
+					const store = cfg.store || {};
+					// 套餐：来自当前店铺配置（含名称/积分/价格/商品key）
+					if (Array.isArray(cfg.packages) && cfg.packages.length) {
+						this.packages = cfg.packages.map(p => ({
+							id: p.id,
+							name: p.name,
+							points: p.points,
+							price: p.price,
+							discount: p.discount || '',
+							description: p.description || '',
+							recommended: !!p.recommended,
+							goods_key: p.goods_key || ''
+						}));
+					}
+					this.payConfig = {
+						base_url: store.base_url || this.payConfig.base_url,
+						channel_id: store.channel_id || this.payConfig.channel_id,
+						query_password: store.query_password || '',
+						store_name: store.store_name || '',
+						pay_order_path: store.pay_order_path || this.payConfig.pay_order_path,
+						pay_query_path: store.pay_query_path || this.payConfig.pay_query_path
+					};
+				},
+				fail: () => {
+					console.warn('[支付] 加载支付配置失败，使用默认配置');
+				}
+			});
+		},
 
 		// 加载用户积分
 		loadUserPoints() {
@@ -257,19 +308,21 @@ export default {
 		async createOrder(pkg) {
 			this.creatingOrder = true;
 			try {
-				// ① 调支付网关创建订单
-				const res = await fetch('https://pay.ldxp.cn/shopApi/Pay/order', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						goods_key: pkg.goods_key,
-						quantity: 1,
-						coupon_code: '',
-						channel_id: 1,
-						contact: '13' + this._randomStr(9, '0123456789'),
-						extend: { juuid: this._randomStr(16) }
-					})
-				});
+				// ① 调支付网关创建订单（网关地址/通道/商品key/路径取自后台配置）
+			const res = await fetch(`${this.payConfig.base_url}${this.payConfig.pay_order_path}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					goods_key: pkg.goods_key,
+					quantity: 1,
+					coupon_code: '',
+					channel_id: this.payConfig.channel_id,
+					contact: '13' + this._randomStr(9, '0123456789'),
+					query_password: this.payConfig.query_password,
+					select_cards_ids: [],
+					extend: { juuid: this._randomStr(16) }
+				})
+			});
 				const data = await res.json();
 				if (data.code !== 1) {
 					console.error('[支付] 创建订单失败:', JSON.stringify(data));
@@ -329,8 +382,8 @@ export default {
 			this.checkingPayment = true;
 
 			try {
-				// ① 查支付网关
-				const res = await fetch('https://pay.ldxp.cn/shopApi/Pay/query', {
+				// ① 查支付网关（网关地址/路径取自后台配置）
+				const res = await fetch(`${this.payConfig.base_url}${this.payConfig.pay_query_path}`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ trade_no })

@@ -37,7 +37,7 @@ module.exports = {
 		// ========== ② 获取 merchant_token（缓存24h） ==========
 		let merchantToken;
 		try {
-			merchantToken = await getMerchantToken(db, vk);
+			merchantToken = await getMerchantToken(util);
 		} catch (err) {
 			const msg = err.message || '';
 			if (msg.includes('操作频繁') || msg.includes('频繁')) {
@@ -49,12 +49,12 @@ module.exports = {
 		// ========== ③ 查询订单详情 ==========
 		let orderInfo = null;
 		try {
-			orderInfo = await queryOrderInfo(merchantToken, trade_no);
+			orderInfo = await queryOrderInfo(util, merchantToken, trade_no);
 		} catch (err) {
 			// token 过期时重新登录一次
 			if (err.message && err.message.includes('token')) {
 				try {
-					merchantToken = await getMerchantToken(db, vk, true);
+					merchantToken = await getMerchantToken(util, true);
 				} catch (loginErr) {
 					const msg = loginErr.message || '';
 					if (msg.includes('操作频繁') || msg.includes('频繁')) {
@@ -63,7 +63,7 @@ module.exports = {
 					return { code: -1, msg: '系统繁忙，请稍后重试' };
 				}
 				try {
-					orderInfo = await queryOrderInfo(merchantToken, trade_no);
+					orderInfo = await queryOrderInfo(util, merchantToken, trade_no);
 				} catch (err2) {
 					return { code: -1, msg: '查询订单失败，请稍后重试' };
 				}
@@ -159,7 +159,8 @@ module.exports = {
 /**
  * 获取 merchant_token，优先从缓存读取，过期重新登录
  */
-async function getMerchantToken(db, vk, forceRefresh = false) {
+async function getMerchantToken(util, forceRefresh = false) {
+	const { vk, db } = util;
 	const TOKEN_KEY = 'ldxp_merchant_token';
 	const CACHE_HOURS = 20;
 
@@ -184,13 +185,17 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 		} catch (_) {}
 	}
 
+	// 商户账号密码从当前启用店铺配置读取（后台「支付接口配置」页面维护）
+	const pointsPayConfig = vk.require('service/admin/points/util/pointsPayConfig');
+	const payConfig = await pointsPayConfig.getActiveStore(util);
+
 	// 登录获取 merchant_token
 	const loginRes = await uniCloud.httpclient.request(
-		'https://pay.ldxp.cn/merchantApi/user/login',
+		`${payConfig.base_url}${payConfig.merchant_login_path}`,
 		{
 			method: 'POST',
 			contentType: 'json',
-			data: { username: 'ai-auto-man', password: 'Aa123456' },
+			data: { username: payConfig.merchant_user, password: payConfig.merchant_pass },
 			dataType: 'json',
 			timeout: 10000
 		}
@@ -227,9 +232,14 @@ async function getMerchantToken(db, vk, forceRefresh = false) {
 /**
  * 查询订单详情
  */
-async function queryOrderInfo(merchantToken, trade_no) {
+async function queryOrderInfo(util, merchantToken, trade_no) {
+	const { vk } = util;
+	// 查询订单详情（网关地址取自当前启用店铺配置）
+	const pointsPayConfig = vk.require('service/admin/points/util/pointsPayConfig');
+	const payConfig = await pointsPayConfig.getActiveStore(util);
+
 	const res = await uniCloud.httpclient.request(
-		'https://pay.ldxp.cn/merchantApi/Order/orderInfo',
+		`${payConfig.base_url}${payConfig.merchant_order_info_path}`,
 		{
 			method: 'POST',
 			contentType: 'json',

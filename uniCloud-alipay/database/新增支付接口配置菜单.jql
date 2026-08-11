@@ -1,0 +1,15 @@
+// 新增「支付接口配置」管理员菜单
+// 注意：此 JQL 运行器仅支持单条 JQL 语句，不支持 JS 控制流（if/async 等）。
+// 本脚本为单条 add 语句；重复运行会因 menu_id 唯一索引报错，但不会产生脏数据。
+// 更推荐在「系统设置 → 菜单管理」页面手动添加（见 md 说明）。
+
+db.collection('opendb-admin-menus').add({
+  menu_id: 'system-uni-points-pay-config',
+  name: '支付接口配置',
+  url: '/pages_plugs/system/points-pay-config/list',
+  icon: 'el-icon-coin',
+  comment: '配置积分购买支付网关、通道、商户凭证和套餐商品key',
+  parent_id: 'system-uni',
+  sort: 3,
+  enable: true
+})

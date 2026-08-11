@@ -225,5 +225,17 @@
     "name": "公告管理",
     "comment": "管理首页弹窗公告内容",
     "parent_id": "system-uni"
+  },
+  {
+    "_id": "system-uni-points-pay-config",
+    "sort": 3,
+    "url": "/pages_plugs/system/points-pay-config/list",
+    "_add_time": 1596416400000,
+    "enable": true,
+    "icon": "el-icon-coin",
+    "menu_id": "system-uni-points-pay-config",
+    "name": "支付接口配置",
+    "comment": "配置积分购买支付网关、通道、商户凭证和套餐商品key",
+    "parent_id": "system-uni"
   }
 ]

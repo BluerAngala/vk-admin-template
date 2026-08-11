@@ -262,6 +262,10 @@
           "style": { "navigationBarTitleText": "返利配置" }
         },
         {
+          "path": "system/points-pay-config/list",
+          "style": { "navigationBarTitleText": "支付接口配置" }
+        },
+        {
           "path": "system/rebate-records/list",
           "style": { "navigationBarTitleText": "返利记录" }
         },

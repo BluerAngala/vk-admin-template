@@ -1,8 +1,8 @@
 /**
  * 确认支付并充值积分（直接上分）
- * 前端流程:fetch(pay.ldxp.cn/shopApi/Pay/order) → window.open(payurl) → 轮询 fetch(Pay/query) → 调本接口
+ * 前端流程:fetch({payConfig.base_url}{payConfig.pay_order_path}) → window.open(payurl) → 轮询 fetch(Pay/query) → 调本接口
  * 前端已确认支付成功后调用，云函数不再二次校验网关（网关对不同IP返回不一致）
- * 防刷靠: ① 套餐白名单 ② trade_no 幂等(同一订单不会重复到账)
+ * 防刷靠: ① 套餐白名单(服务端配置) ② trade_no 幂等(同一订单不会重复到账)
  * @url admin/points/kh/addPoints
  * @param {String} trade_no  支付网关返回的订单号
  * @param {Number} package_id 前端选中的套餐 id
@@ -26,16 +26,11 @@ module.exports = {
 			return { code: -1, msg: '套餐参数缺失' };
 		}
 
-		// ① 服务端校验套餐(防止前端传大数字刷积分)
-		const PACKAGES = {
-			1: { name: '体验套餐（10积分）', points: 10 },
-			2: { name: '基础套餐（50积分）', points: 50 },
-			3: { name: '超值套餐（100积分）', points: 100 },
-			4: { name: '豪华套餐（300积分）', points: 300 },
-			5: { name: '至尊套餐（500积分）', points: 500 },
-			6: { name: '终极套餐（1000积分）', points: 1000 }
-		};
-		const pkg = PACKAGES[package_id];
+		// ① 服务端校验套餐(防止前端传大数字刷积分)——套餐定义取自当前启用店铺的配置
+		const pointsPayConfig = vk.require('service/admin/points/util/pointsPayConfig');
+		const activeStore = await pointsPayConfig.getActiveStore(util);
+		const PACKAGES = (activeStore && activeStore.packages) || [];
+		const pkg = PACKAGES.find(p => p.id == package_id);
 		if (!pkg) {
 			return { code: -1, msg: '套餐不存在' };
 		}
