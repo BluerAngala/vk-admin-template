@@ -1,2 +1,1 @@
-// 第3d步：更新邀请返利
-db.collection('vk-invite-rebate-log').where({ user_id: 'ID001' }).update({ user_id: '001' });
+db.collection('uni-id-users').limit(10).get()
