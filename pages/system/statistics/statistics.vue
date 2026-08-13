@@ -78,6 +78,7 @@
       :pagination="true"
       :page-size="10"
       :custom-right-btns="table1.customRightBtns"
+      @success="onTableSuccess"
     >
       <!-- 用户名列 -->
       <template v-slot:user_info="{ row }">
@@ -188,7 +189,7 @@ export default {
   methods: {
     // ==================== 初始化 ====================
     async init() {
-      that.loadSummaryStats();
+      // 统计数据由表格 @success 事件自动获取，无需单独请求
     },
     async checkAdmin() {
       try {
@@ -199,35 +200,17 @@ export default {
       }
     },
 
-    // ==================== 统计数据 ====================
-    async loadSummaryStats() {
-      const res = await vk.callFunction({
-        url: 'admin/statistics/sys/getUserPointsSummary',
-        data: { pageSize: -1 },
-      });
-      if (res.code === 0 && res.rows) {
-        that.summaryStats.totalUsers = res.rows.length;
-        that.summaryStats.totalPoints = res.rows.reduce((sum, item) => sum + (item.total_points || 0), 0);
-        that.summaryStats.totalConsumed = res.rows.reduce((sum, item) => sum + (item.consumed_points || 0), 0);
-        that.summaryStats.totalAvailable = res.rows.reduce((sum, item) => sum + (item.available_points || 0), 0);
-      }
-      try {
-        const machinesRes = await vk.callFunction({
-          url: 'admin/statistics/sys/getTotalMachines',
-        });
-        if (machinesRes.code === 0 && machinesRes.data) {
-          that.summaryStats.totalMachines = machinesRes.data.totalMachines || 0;
-        }
-      } catch (err) {
-        console.error('获取机器数量失败：', err);
-        that.summaryStats.totalMachines = 0;
+    // ==================== 统计数据（表格加载成功时自动获取） ====================
+    onTableSuccess({ data }) {
+      if (data && data.summary) {
+        Object.assign(that.summaryStats, data.summary);
       }
     },
 
     // ==================== 刷新回调 ====================
     handleRefresh() {
+      // refresh 会触发 @success 事件，自动更新统计
       that.$refs.table1.refresh();
-      that.loadSummaryStats();
     },
 
     // ==================== 搜索栏 ====================

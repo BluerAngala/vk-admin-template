@@ -199,7 +199,22 @@ module.exports = {
 		summaryList.forEach(item => {
 			item.total_machines = userMachinesMap[item.user_id] || 0;
 		});
-		
+
+		// 计算汇总统计（顺手算，零额外开销）
+		const summary = {
+			totalUsers: summaryList.length,
+			totalPoints: 0,
+			totalConsumed: 0,
+			totalAvailable: 0,
+			totalMachines: 0,
+		};
+		summaryList.forEach(item => {
+			summary.totalPoints += item.total_points || 0;
+			summary.totalConsumed += item.consumed_points || 0;
+			summary.totalAvailable += item.available_points || 0;
+			summary.totalMachines += item.total_machines || 0;
+		});
+
 		// 分页处理
 		const pageIndex = data.pageIndex || 1;
 		const pageSize = data.pageSize || 10;
@@ -218,7 +233,8 @@ module.exports = {
 		return {
 			code: 0,
 			rows: rows,
-			total: total
+			total: total,
+			summary: summary
 		};
 	}
 };
