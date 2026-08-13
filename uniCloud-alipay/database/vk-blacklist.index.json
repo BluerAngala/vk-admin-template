@@ -1,9 +1,12 @@
-{
-  "bsonType": "object",
-  "fields": [
-    {
-      "path": "user_id",
-      "unique": true
+[
+  {
+    "IndexName": "user_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [{
+        "Name": "user_id",
+        "Direction": "1"
+      }],
+      "MgoIsUnique": true
     }
-  ]
-}
+  }
+]

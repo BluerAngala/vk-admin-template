@@ -1,55 +1,52 @@
-{
-  "indexes": [
-    {
-      "IndexName": "card_code",
-      "MgoKeySchema": {
-        "MgoIndexKeys": [{
-          "Name": "card_code",
-          "Direction": "1"
-        }],
-        "MgoIsUnique": true
-      }
-    },
-    {
-      "IndexName": "status",
-      "MgoKeySchema": {
-        "MgoIndexKeys": [{
-          "Name": "status",
-          "Direction": "1"
-        }],
-        "MgoIsUnique": false
-      }
-    },
-    {
-      "IndexName": "card_type",
-      "MgoKeySchema": {
-        "MgoIndexKeys": [{
-          "Name": "card_type",
-          "Direction": "1"
-        }],
-        "MgoIsUnique": false
-      }
-    },
-    {
-      "IndexName": "_add_time",
-      "MgoKeySchema": {
-        "MgoIndexKeys": [{
-          "Name": "_add_time",
-          "Direction": "-1"
-        }],
-        "MgoIsUnique": false
-      }
-    },
-    {
-      "IndexName": "used_user_id",
-      "MgoKeySchema": {
-        "MgoIndexKeys": [{
-          "Name": "used_user_id",
-          "Direction": "1"
-        }],
-        "MgoIsUnique": false
-      }
+[
+  {
+    "IndexName": "card_code",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [{
+        "Name": "card_code",
+        "Direction": "1"
+      }],
+      "MgoIsUnique": true
     }
-  ]
-}
-
+  },
+  {
+    "IndexName": "status",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [{
+        "Name": "status",
+        "Direction": "1"
+      }],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "card_type",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [{
+        "Name": "card_type",
+        "Direction": "1"
+      }],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "_add_time",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [{
+        "Name": "_add_time",
+        "Direction": "-1"
+      }],
+      "MgoIsUnique": false
+    }
+  },
+  {
+    "IndexName": "used_user_id",
+    "MgoKeySchema": {
+      "MgoIndexKeys": [{
+        "Name": "used_user_id",
+        "Direction": "1"
+      }],
+      "MgoIsUnique": false
+    }
+  }
+]

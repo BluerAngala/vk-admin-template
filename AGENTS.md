@@ -1,165 +1,195 @@
-# Repository Guidelines
+# 仓库指南
 
-> vk-unicloud-admin 项目 AI 协作指南。框架 API 细节见 `vk-unicloud-docs/docs/`，本文聚焦**本仓库独有的**架构、模块、禁区。
+> **两个文件分工**：
+> - `AGENTS.md`（本文件）— 通用开发规则，适用于所有基于 vk-unicloud-admin 的项目
+> - `PROJECT.md` — 当前项目的实际业务状态（模块、页面、数据表、配置），换模板时只改这个
 
-## 1. Project Overview
+## 项目概述
 
-**vk-unicloud-admin v1.21.0** — uni-app (Vue2) + uniCloud + uni-id + element-ui 的 **PC 后台管理框架**。
+vk-unicloud-admin — 基于 Vue 2 + uni-app + uniCloud + Element UI 的管理后台快速开发框架。JSON 驱动的万能表格/表单组件，RBAC 权限管理，三语 i18n，主题切换。
 
-- 核心卖点：万能表格/万能表单 JSON 配置驱动 CRUD；内置用户/角色/权限/菜单等 12 项模块
-- PC-only：`topWindow`+`leftWindow` 自绘布局，宽屏 ≥1280
-- 运行时：HBuilderX ^3.1.11（必须，无 CLI）、Vue 2、H5 hash 路由 base `/admin/`
-- 包管理：npm（无 yarn/pnpm lock）
+## 架构
 
-## 2. Architecture
+前端 H5/App/MP → 单云函数 `router` → uniCloud 数据库。URL 路径 = 文件路径（`admin/system/user/sys/getList` → `service/admin/system/user/sys/getList.js`）。
 
-### 调用链路
+App.vue 启动流程：checkToken → `vk.userCenter.getMenu()` 从云端拉菜单 → 与 `static_menu/` 静态菜单合并 → 存入 Vuex（`$app.navMenu`、`$app.menuList`）→ leftWindow 渲染。
 
-```
-Vue Page → vk.callFunction({ url, data })
-  → POST /http/router (单云函数)
-    → middleware → service/<group>/<sub>/<action>.js → vk.baseDao / database()
-```
+## ⚠️ 关键配置文件（修改前必须理解）
 
-### 权限分层（service/ 子目录命名）
+### .claude
 
-| 后缀 | 含义 | 前置 |
+必须读取 .claude 下的开发规范和技能。
+
+### app.config.js — 前端运行时配置
+
+控制整个前端的行为，**改错会导致页面跳转异常、登录失效、菜单丢失**。
+
+| 配置项 | 作用 | 踩坑点 |
 |---|---|---|
-| `sys` | 管理员侧 | role=admin + permissions 匹配 |
-| `kh` | 已登录用户 | token 有效，仅读改自己的数据 |
-| `pub` | 公开接口 | 无 token |
+| `login.url` | 登录页路径，未登录时框架跳转到这里 | 改错会导致登录死循环 |
+| `index.url` | 首页路径（仪表盘），登录成功后跳转这里 | 不是落地页，是登录后的主页面 |
+| `checkTokenPages` | 哪些页面需要登录。mode=2 时 list 内的页面**不需要**登录 | **pages.json 的第一个页面不受此白名单控制**，框架会强制检查登录 |
+| `checkPermissionPages` | 哪些页面需要菜单权限。mode=2 时 list 内的页面**不需要**权限 | 不在菜单里的页面必须加白名单，否则 403 |
+| `sideBar.staticMenu` | 静态菜单数据来源 | 来自 `app.config.menu.js` |
+| `theme.use` | 主题选择：white/black/blackWhite | 改了要刷新才生效 |
 
-### 状态管理
+**⚠️ 重要规则**：
+1. `pages.json` 的第一个页面 = 框架首页，**不受 `checkTokenPages` 白名单控制**，框架会强制检查登录
+2. 想让未登录用户看到落地页：落地页**不能放第一位**，应把首页放第一位，在首页 `onLoad` 里手动判断 token 后跳转
+3. `checkTokenPages` 和 `checkPermissionPages` 是独立的，一个页面可能通过了登录检查但被权限检查拦住
 
-- Vuex 单 store，模块 `$app`/`$user`/`$error`，自动注册
-- **只走** `vk.setVuex('updateStore', { name, value })` 和 `vk.getVuex('$user.userInfo')`
-- 不要 `this.$store.commit` / `mapState`
+### app.config.menu.js — 菜单数据
 
-### RBAC
+控制左侧菜单显示哪些项。**改错会导致菜单重复、空白、或显示不该显示的页面**。
 
-角色 → 分配权限 + 菜单，用户 → 分配角色。运行时 `$hasRole()`/`$hasPermission()`。页面级 checkTokenPages + checkPermissionPages（mode 2 = 除白名单外全部检查）。
+- 开发环境：`menu.json` + `menu-dev.json` 合并
+- 生产环境：只用 `menu.json`
+- 合并规则：按 `menu_id` 去重，动态菜单（云端）优先级高于静态菜单
 
-### 业务模块映射
+### pages.json — 页面路由
 
-| 业务域 | 前端页面 | 云函数入口 | 数据表 |
-|---|---|---|---|
-| 卡密授权 | `pages/card-manage/` | `admin/card/{pub,kh,sys}/*` | `vk-card-key` |
-| 积分 | `pages/points-shop/`, `pages/user-center/` | `admin/points/{kh,sys}/*` | `vk-user-points` + `vk-points-log` |
-| 产品 | `pages/my-products/`, `pages/system/product/` | `admin/product/{kh,sys}/*` | `vk-products` + `vk-user-products` |
-| 工单 | `pages/ticket/{list,detail,create}.vue` | `admin/ticket/{kh,sys}/*` | `vk-tickets` + `vk-ticket-replies` |
-| 邀请返利 | `pages/invite-center/` | `invite/{pub,util}/*` + `admin/rebate/sys/*` | `vk-invite-rebate-log` + `vk-global-data` |
-| 系统设置 | `pages_plugs/system/*` | `admin/system/*/sys/*` | `uni-id-*` + `opendb-*` |
+定义所有页面路径和窗口布局。**第一个页面是框架首页**，修改顺序会影响启动行为。
 
-## 3. Key Directories
+- `subPackages`：子包，按需加载
+- `topWindow` / `leftWindow`：全局布局窗口
+- `pages-dev.json`：开发环境额外页面，通过 `pages.js` 合并
 
-| 路径 | 用途 |
+### 三者关系
+
+```
+pages.json（路由定义）
+    ↓ 第一个页面 = 启动页
+app.config.js（行为控制）
+    ↓ checkTokenPages 判断是否需要登录
+    ↓ checkPermissionPages 判断是否需要权限
+    ↓ login.url = 登录页跳转目标
+    ↓ index.url = 首页跳转目标
+app.config.menu.js（菜单数据）
+    ↓ 静态菜单 + 云端动态菜单 → 左侧菜单栏
+```
+
+## 目录结构
+
+| 目录 | 说明 |
 |---|---|
-| `pages/` | 前台业务（首页/登录/卡密/积分/工单/邀请等） |
-| `pages_plugs/` | 管理员系统管理 + 运营页 + 错误页 |
-| `pages_template/` | **仅 dev 演示**，生产被剥离，不要在 `pages.json` 直接注册 |
-| `components/` | 全局组件，自动注册（`main.js:26-36`） |
-| `common/theme/` | 主题配置，由 `app.config.js theme.use` 切换 |
-| `uni_modules/` | 23+ 插件，**不要手动改**，按规范升级 |
-| `store/modules/` | Vuex 模块（`$app`/`$user`/`$error`） |
-| `static_menu/` | `menu.json`（生产）+ `menu-dev.json`（演示），按 NODE_ENV 合并 |
-| `uniCloud-alipay/cloudfunctions/router/` | **单云函数入口**，`service/admin/*` 业务、`util/*` 工具、`middleware/*` 拦截器 |
-| `uniCloud-alipay/database/` | schema + init_data + jql 脚本 |
-| `script/` | 一次性数据修复脚本，需手动 `node script/xxx.js` |
-| `windows/` | `topWindow.vue`（顶栏 100px）+ `leftWindow.vue`（侧栏 280px） |
-| `md/` | 业务文档（卡密对接、迁移指南），改动业务请同步更新 |
+| `pages/` | 主页面：首页、登录、vk-stats 统计 |
+| `pages_plugs/system/` | 管理 CRUD：user、role、permission、menu、app |
+| `pages_plugs/system_uni/` | uni 专属：全局数据、日志、文件管理 |
+| `pages_template/` | 开发环境组件/Element UI 演示页 |
+| `uni_modules/vk-unicloud/` | **核心框架**：router、userCenter、pubfn、navigate、storage |
+| `uni_modules/uni-id/` | 用户认证模块 |
+| `uni_modules/uni-config-center/` | 云端集中配置 |
+| `uniCloud-alipay/cloudfunctions/router/` | **全部后端代码** |
+| `store/modules/` | Vuex：`$app`（菜单/UI）、`$user`（认证）、`$error`（日志） |
+| `components/` | 全局组件（require.context 自动注册） |
+| `common/theme/` | 主题预设：white、black、blackWhite |
+| `windows/` | 布局：topWindow（顶栏）、leftWindow（侧边栏） |
+| `static_menu/` | JSON 菜单：menu.json（生产）、menu-dev.json（开发） |
+| `locale/lang/` | i18n：en.json、zh-Hans.json、zh-Hant.json |
 
-## 4. Development Commands
+## 后端结构（router/）
 
-| 动作 | 方式 |
+```
+router/
+├── dao/config.js          # 数据库表名常量（25+ 张表）
+├── dao/base.js            # BaseDao 类（CRUD、聚合、事务）
+├── dao/modules/           # 自动发现 *Dao.js
+├── middleware/modules/    # URL 正则匹配，index 10→999 排序执行
+├── service/admin/system/  # 核心 CRUD：user/、role/、menu/、permission/
+├── service/user/          # 用户中心：pub/（公开）、kh/（自助）、sys/（管理）
+└── util/formRules.js      # 按实体的表单校验类
+```
+
+**两种 Service 格式**：
+- 旧版：`module.exports = { main: async (event) => {} }`（admin/system/ 主要用这个）
+- Cloud Object：`isCloudObject: true`，有 `_before`/`_after` 钩子（新服务用）
+
+**响应规范**：成功 `{ code: 0, msg: '' }`，失败 `{ code: -1, msg: '错误描述' }`
+
+## ⚠️ HBuilderX 快捷方式机制（VSCode/OMP 中不可见）
+
+HBuilderX 会把 uni_modules 里的云函数和数据库 schema **以快捷方式**显示在项目目录中，但这些文件**不是物理文件**，在 VSCode/OMP 中看不到。
+
+### 云函数快捷方式
+
+uni_modules 通过 `package.json` 的 `uni_modules` 字段声明暴露的云函数，HBuilderX 自动链接到 `cloudfunctions/` 目录：
+
+| uni_module | 暴露内容 | 说明 |
+|---|---|---|
+| `uni-captcha` | `uni-captcha-co`（云对象）、`common/uni-captcha`（公共模块） | 验证码生成/校验 |
+| `uni-id` | `common/uni-id`（公共模块） | 用户认证，router 通过 file: 引用 |
+| `uni-config-center` | `common/uni-config-center`（公共模块） | 集中配置管理 |
+| `vk-unicloud` | `common/vk-unicloud`（公共模块） | 框架核心，router 通过 file: 引用 |
+
+**router 的依赖方式**（package.json）：
+```json
+"dependencies": {
+    "uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
+    "uni-id": "file:../../../uni_modules/uni-id/uniCloud/cloudfunctions/common/uni-id",
+    "vk-unicloud": "file:../../../uni_modules/vk-unicloud/uniCloud/cloudfunctions/common/vk-unicloud"
+}
+```
+
+### 数据库 Schema 快捷方式
+
+uni_modules 的 `uniCloud/database/` 下的 schema 也会被链接到 `uniCloud-alipay/database/`。
+
+**已知快捷方式**：
+- `opendb-verify-codes` → 来自 `uni-captcha`，不要在 `uniCloud-alipay/database/` 里重复放
+
+### 开发规范
+
+1. **不要在 `uniCloud-alipay/cloudfunctions/` 里创建与 uni_modules 同名的云函数**（如 `uni-captcha-co`）
+2. **不要在 `uniCloud-alipay/database/` 里复制 uni_modules 已有的 schema**
+3. **修改 uni_modules 的文件时**，要改源文件（`uni_modules/*/`），不要改快捷方式
+4. **router 调用公共模块**时，通过 `require` 引用 package.json 中声明的依赖，不要硬编码路径
+5. **不确定某个文件是物理文件还是快捷方式时**，先检查 `find uni_modules -name "同名文件"` 确认来源
+
+## 开发方式
+
+| 操作 | 方法 |
 |---|---|
-| 安装依赖 | `npm i`（仅 3 个 vendor，无 devDeps） |
-| 启动开发 | HBuilderX 打开项目 → 运行到浏览器 |
-| 云函数本地调试 | HBX 右键 `router` → 本地运行云函数 |
-| 数据库初始化 | HBX 右键 `db_init.jql`/`db_init.json`（**一次性，不可重入**） |
-| 调试查询 | `JQL查询.jql` 写查询 + HBX 右键运行 |
-| 接口调试 | `router.param.json` 改默认 url + HBX 本地运行 |
-| 数据修复 | `node script/xxx.js`（看脚本顶部注释） |
-| 发布 H5 | HBX → 发行 → 网站(PC Web)，记得 base `/admin/` |
+| 运行 | HBuilderX → 运行到 Chrome（H5） |
+| 构建 | HBuilderX → 发行到 Web |
+| 上传云函数 | HBuilderX → 上传 uniCloud 云函数 |
+| 格式化 | `prettier --write .`（printWidth: 180） |
 
-## 5. Key Conventions
+**无 CLI 构建脚本**，纯 HBuilderX 项目。
+
+## 代码规范
 
 ### 命名
+- 变量：camelCase（`userInfo`）
+- 数据库字段：snake_case（`user_id`）
+- 数据库表名：kebab-case（`uni-id-users`）
+- Vuex 模块：`$` 前缀（`$app`、`$user`、`$error`）
+- 组件：`vk-data-*`（框架）、`custom-*`（自定义）
+- 页面：`pages_plugs/system/{实体}/list.vue`，表单在 `form/` 子目录
 
-- 页面：kebab-case（`card-manage.vue`）
-- 云函数：flat `<action>.js`（`getList.js`），首行 `@url admin/.../...`
-- Store 模块：`$<scope>` 前缀
-- 数据库表：`vk-<domain>[-<entity>]`，标准表保留 `uni-id-*`/`opendb-*`
-
-### 业务逻辑边界
-
-- 数据库访问**只走后端**，前端不可直连 clientDB
-- 积分变动必须先写 `vk-points-log`（`order_id` 唯一），幂等保护
-- 续费/扣减必须 `transaction.rollback()` 包裹，参考 `service/admin/card/kh/renew.js`
-- 加密通道 AES-256-GCM，**生产应改 env `ENCRYPTION_KEY`**（`util/card.js`）
-
-### 样式
-
-- 全局 SCSS：`common/css/app.scss`
-- 主题：`theme.use = 'blackWhite'`（默认），改主题同步 `common/theme/{black,white,blackWhite}.js`
-- **不要**在子页面覆盖 `window` 字段，**不要**新增 vendor UI 库
-
-### H5 外部资源
-
-`template.h5.html` 加载：Element UI CSS、Quill、TinyMCE、ExcelJS
-
-## 6. Testing & QA
-
-**无测试框架、无 CI/CD。** `npm test` 是空桩（exit 1）。
-
-**验证方式**：JQL 查询验数据 → `router.param.json` 验接口 → HBX 浏览器手工冒烟
-
-## 7. Common Pitfalls（AI 必读）
-
-1. **`service/template/test/*` ≠ 测试** — 是 vk-router 云函数调用模板，被前端示例页引用
-2. **`vk-test` 表 ≠ 单元测试目标** — 是框架 CRUD 演示表
-3. **`db_init.*` ≠ 迁移工具** — 改它会污染现有数据，新初始化写独立文件
-4. **`pages_template/` 仅 dev** — 不要在 `pages.json` 直接注册
-5. **Vuex 不要直接 commit** — 用 `vk.setVuex`/`vk.getVuex`
-6. **不要新增 vendor UI 库** — 已有 element-ui + umy-ui + vk-unicloud-admin-ui
-7. **H5 部署 base `/admin/`** — `manifest.json:74`
-8. **PC-only** — 不要把页面改成移动端
-9. **appid 隔离** — 每个部署修改 `manifest.json:3` 并在 `opendb-app-list` 注册
-10. **改页面后同步菜单** — `app.config.menu.js` 或 `static_menu/menu.json`，静态+动态双轨
-11. **database/ 不要放与 uni_modules 同名 schema** — 会冲突报错，需定制直接改 uni_modules 源文件
-
-## 8. Quick Recipe：新增 CRUD 页面
-
+### 前端常用
 ```js
-// 1. 后端 service/admin/<module>/sys/<action>.js
-module.exports.main = async (event) => {
-  let { data = {}, userInfo, util, originalParam } = event;
-  let { vk } = util;
-  let res = { code: 0, msg: '' };
-  try {
-    res.data = await vk.baseDao.getTableData({
-      dbName: 'vk-<entity>',
-      data,
-      whereJson: data.whereJson,
-      sortArr: [{ name: '_add_time', type: 'desc' }],
-      pageIndex: data.pageIndex || 1,
-      pageSize: data.pageSize || 20,
-    });
-  } catch (err) { res.code = -1; res.msg = err.message; }
-  return res;
-};
-
-// 2. 前端 pages/<domain>/list.vue → vk.callFunction({ url: 'admin/<module>/kh/getList', ... })
-
-// 3. 菜单 app.config.menu.js / static_menu/menu.json
-
-// 4. 权限 uni-id-permissions.init_data.json 加 permission_id
+let vk = uni.vk;                          // 全局 vk 实例
+vk.getVuex('$user.userInfo')              // 读 Vuex
+vk.setVuex('$user.userInfo.avatar', url)  // 写 Vuex（支持点号路径）
+vk.callFunction({ url: '...', data: {} }) // 调云函数
+$hasRole('admin')                         // 角色检查
+$hasPermission('user-add')                // 权限检查
+vk.navigateTo({ url: '/pages/xxx' })      // 导航
 ```
 
-## 9. 安全规则
+### Admin CRUD 页面模板
+```vue
+<vk-data-table-query :action="action" v-model="queryForm" />
+<vk-data-table :action="action" :columns="columns" />
+<vk-data-dialog v-model="addForm">
+  <vk-data-form v-model="formData" :columns="formColumns" />
+</vk-data-dialog>
+```
 
-- **必须用中文回答**
-- 大改动先说明方案，等用户确认后再执行
-- 前端表单校验 + 后端参数校验必须做
+### 格式化（Prettier）
+printWidth: 180, tabWidth: 2, semi: true, singleQuote: true, trailingComma: es5, vueIndentScriptAndStyle: true
+
+`config.js` 和 `uni-config-center/**/*.js` 用双引号（overrides）。
 
 ## 文档
 
@@ -174,6 +204,25 @@ module.exports.main = async (event) => {
 
 **查阅方式**：遇到具体组件/API/配置问题时，先读对应目录下的 md 文件再动手。不要凭记忆猜测框架 API。
 
----
+## 运行时
 
-**TL;DR**: HBX + npm，无测试/CI。唯一通信 `vk.callFunction({ url })` 走单云函数 `router`。状态只走 `vk.setVuex`/`vk.getVuex`。禁区：`template/test/*` 演示、`vk-test` 表、`db_init.*` 一次性脚本。
+- **IDE**：HBuilderX ^3.1.10（必须，无 CLI）
+- **Vue**：仅 Vue 2
+- **H5 路由**：hash 模式，base `/admin/`
+- **换行符**：LF（.gitattributes 强制）
+- **无测试框架**：`npm test` 是空桩
+- **H5 外部资源**（template.h5.html 加载）：Element UI CSS、Quill、TinyMCE、ExcelJS
+
+## RBAC
+
+角色 → 分配权限 + 菜单，用户 → 分配角色。
+- 权限：permission_id、url 模式、match_mode（full/wildcard/regex）
+- 菜单：menu_id、url、icon、parent_id（树形）
+- 运行时：`$hasRole()`、`$hasPermission()`
+- 页面级：checkTokenPages + checkPermissionPages（mode 2 = 除白名单外全部检查）
+
+## 安全规则
+
+- **必须用中文回答**
+- 大改动先说明方案，等用户确认后再执行
+- 前端表单校验 + 后端参数校验必须做
