@@ -3,9 +3,9 @@ import App from './App'
 import store from './store'
 import config from '@/app.config.js'
 
-// 引入 elementUI
+// 引入 elementUI（样式已改为 SCSS 源码编译，见 common/theme/element-custom.scss）
 import elementUI from "element-ui";
-import 'element-ui/lib/theme-chalk/index.css';
+import '@/common/theme/element-ui/element-custom.scss';
 Vue.use(elementUI);
 
 // 引入 高性能表格UI 组件

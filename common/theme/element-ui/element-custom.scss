@@ -1,0 +1,82 @@
+// ============================================================
+// Element UI 样式定制入口
+// ============================================================
+// 原理：Element UI 所有变量都带 !default，这里定义的同名变量会优先生效。
+// 源码在 ./element-ui-src/ 下，可以直接修改组件 SCSS。
+//
+// 使用方式：
+//   1. 改全局变量 → 在下方 "变量覆盖" 区域添加/修改
+//   2. 改组件样式 → 直接编辑 ./element-ui-src/xxx.scss
+//   3. 修组件 bug → 直接编辑 ./element-ui-src/xxx.scss
+// ============================================================
+
+
+// ============================================================
+// 变量覆盖（在此处添加你的自定义变量）
+// ============================================================
+
+// --- 颜色 ---
+// 主色（保持与项目 theme/white.js 一致）
+// $--color-primary: #409EFF;
+
+// 功能色（按需取消注释）
+// $--color-success: #67C23A;
+// $--color-warning: #E6A23C;
+// $--color-danger:  #F56C6C;
+// $--color-info:    #909399;
+
+// 文字色
+// $--color-text-primary:   #303133;
+// $--color-text-regular:   #606266;
+// $--color-text-secondary: #909399;
+
+// 边框色
+// $--border-color-base:     #DCDFE6;
+// $--border-color-light:    #E4E7ED;
+// $--border-color-lighter:  #EBEEF5;
+
+// 背景色
+// $--background-color-base: #F5F7FA;
+
+// --- 圆角 ---
+// $--border-radius-base:     4px;
+// $--border-radius-small:    2px;
+// $--border-radius-round:    20px;
+
+// --- 阴影 ---
+// $--box-shadow-base:   0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+// $--box-shadow-light:  0 2px 12px 0 rgba(0, 0, 0, .1);
+// $--box-shadow-lighter: 0 2px 8px 0 rgba(0, 0, 0, .06);
+
+// --- 字体 ---
+// $--font-size-base:    14px;
+// $--font-size-small:   13px;
+// $--font-size-large:   18px;
+
+// --- 按钮 ---
+// $--button-font-weight:    normal;
+// $--button-border-radius:  $--border-radius-base;
+// $--button-padding-vertical:   10px;
+// $--button-padding-horizontal: 20px;
+
+// --- 输入框 ---
+// $--input-height:          36px;
+// $--input-border-color:    $--border-color-base;
+// $--input-border-radius:   $--border-radius-base;
+
+// --- 表格 ---
+// $--table-border-color:    #EBEEF5;
+// $--table-header-background: #FAFAFA;
+
+// --- 卡片 ---
+// $--card-border-color:     #EBEEF5;
+// $--card-border-radius:    4px;
+// $--card-padding:          20px;
+
+// --- 对话框 ---
+// $--dialog-padding-primary: 20px;
+
+// ============================================================
+// 引入 Element UI 源码（不要修改此行）
+// ============================================================
+@import "./src/index.scss";
