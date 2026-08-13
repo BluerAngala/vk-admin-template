@@ -12,6 +12,7 @@ element-ui/
 │   │   ├── popup.scss
 │   │   └── transition.scss
 │   ├── mixins/           ← BEM mixin 工具函数
+│   ├── fonts/            ← 图标字体（element-icons.ttf + woff）
 │   ├── card.scss         ← 单个组件样式
 │   ├── button.scss
 │   ├── table.scss
