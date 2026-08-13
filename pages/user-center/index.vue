@@ -98,11 +98,16 @@ export default {
 
 	methods: {
 		// 初始化
-		init() {
+		async init() {
 			that.loadUserInfo();
-			that.loadPointsInfo();
-			that.loadMachineStats();
-			that.loadProductList();
+			await Promise.all([
+				that.$store.dispatch('$user/loadPointsInfo'),
+				that.$store.dispatch('$user/loadMachineStats'),
+				that.$store.dispatch('$user/loadProductList'),
+			]);
+			that.pointsInfo = that.$store.state.$user.pointsInfo;
+			that.machineStats = that.$store.state.$user.machineStats;
+			that.productList = that.$store.state.$user.productList;
 		},
 
 		// 加载用户信息
@@ -115,61 +120,26 @@ export default {
 			});
 		},
 
-		// 加载积分信息
-		loadPointsInfo() {
-			vk.callFunction({
-				url: "admin/points/kh/getBalance",
-				success: (data) => {
-					that.pointsInfo = data.data || {
-						available_points: 0,
-						total_points: 0,
-						consumed_points: 0
-					};
-				}
-			});
-		},
-
-		// 加载产品列表
-		loadProductList() {
-			vk.callFunction({
-				url: "admin/product/kh/getList",
-				success: (data) => {
-					that.productList = data.data || [];
-				}
-			});
-		},
-
-		// 加载机器统计
-		loadMachineStats() {
-			vk.callFunction({
-				url: "admin/card/kh/getStats",
-				success: (data) => {
-					that.machineStats = {
-						total_machines: data.total_machines || 0
-					};
-				},
-				fail: (err) => {
-					console.error('加载机器统计失败：', err);
-					that.machineStats = { total_machines: 0 };
-				}
-			});
-		},
-
 		// 刷新统计数据
-		refreshStats() {
-			that.loadPointsInfo();
-			that.loadMachineStats();
+		async refreshStats() {
+			await Promise.all([
+				that.$store.dispatch('$user/loadPointsInfo', { force: true }),
+				that.$store.dispatch('$user/loadMachineStats', { force: true }),
+			]);
+			that.pointsInfo = that.$store.state.$user.pointsInfo;
+			that.machineStats = that.$store.state.$user.machineStats;
 			vk.toast("刷新成功");
 		},
 
 		// 标签页切换
-		handleTabClick(tab) {
+		async handleTabClick(tab) {
 			if (tab.name === 'points') {
 				that.$refs.pointsTable && that.$refs.pointsTable.refresh();
 			} else if (tab.name === 'cards') {
 				that.$refs.cardTable && that.$refs.cardTable.refresh();
 			} else if (tab.name === 'products') {
-				that.loadProductList();
+				await that.$store.dispatch('$user/loadProductList', { force: true });
+				that.productList = that.$store.state.$user.productList;
 			}
 		},
 

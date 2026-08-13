@@ -247,21 +247,17 @@ export default {
   },
   methods: {
     // 加载产品列表
-    loadProducts() {
+    async loadProducts() {
       that.loading = true;
-      vk.callFunction({
-        url: "admin/product/kh/getList",
-        data: {},
-        success: (data) => {
-          that.allProducts = data.data || [];
-          that.productList = [...that.allProducts];
-          that.loading = false;
-        },
-        fail: (err) => {
-          vk.toast(err.msg || "加载失败");
-          that.loading = false;
-        },
-      });
+      try {
+        await that.$store.dispatch('$user/loadProductList');
+        that.allProducts = that.$store.state.$user.productList || [];
+        that.productList = [...that.allProducts];
+      } catch (err) {
+        vk.toast(err.msg || "加载失败");
+      } finally {
+        that.loading = false;
+      }
     },
     // 搜索
     search(obj) {

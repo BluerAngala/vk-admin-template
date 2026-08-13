@@ -155,6 +155,8 @@
 </template>
 
 <script>
+import * as rebateService from '@/common/services/rebate.js';
+
 let that;
 let vk;
 
@@ -244,43 +246,18 @@ export default {
       that.loadTierConfig();
     },
     // 加载邀请信息
-    loadInviteInfo() {
-      vk.callFunction({
-        url: 'user/pub/getInviteLink',
-        needLogin: true,
-        success: (data) => {
-          that.inviteInfo = data.data || {};
-        },
-        fail: (err) => {
-          console.error('加载邀请信息失败：', err);
-        }
-      });
+    async loadInviteInfo() {
+      that.inviteInfo = await rebateService.loadInviteInfo();
     },
     // 加载统计信息
-    loadStatistics() {
-      vk.callFunction({
-        url: 'user/pub/getInviteStatistics',
-        needLogin: true,
-        success: (data) => {
-          that.statistics = data.data || {};
-          that.recentRebates = data.data.recentRebates || [];
-        },
-        fail: (err) => {
-          console.error('加载统计信息失败：', err);
-        }
-      });
+    async loadStatistics() {
+      const { statistics, recentRebates } = await rebateService.loadInviteStatistics();
+      that.statistics = statistics;
+      that.recentRebates = recentRebates;
     },
     // 加载阶梯配置
-    loadTierConfig() {
-      vk.callFunction({
-        url: 'invite/pub/getConfig',
-        success: (data) => {
-          that.tierList = data.data.tiers || [];
-        },
-        fail: (err) => {
-          console.error('加载阶梯配置失败：', err);
-        }
-      });
+    async loadTierConfig() {
+      that.tierList = await rebateService.loadTierConfig();
     },
     // 复制邀请链接
     copyInviteLink() {

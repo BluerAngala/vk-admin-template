@@ -1244,11 +1244,12 @@ export default {
   },
   methods: {
     // 初始化
-    init() {
+    async init() {
       originalForms["form1"] = vk.pubfn.copyObject(that.form1);
       that.checkAdminRole();
       that.loadUserList();
-      that.loadMachineStats();
+      await that.$store.dispatch('$user/loadMachineStats');
+      that.machineStats = that.$store.state.$user.machineStats;
     },
     // 检查是否是管理员
     checkAdminRole() {
@@ -1509,20 +1510,9 @@ export default {
       return "";
     },
     // 加载机器统计
-    loadMachineStats() {
-      // 非管理员也需要加载，因为价格显示需要用到
-      vk.callFunction({
-        url: "admin/card/kh/getStats",
-        success: (data) => {
-          that.machineStats = {
-            total_machines: data.total_machines || 0
-          };
-        },
-        fail: (err) => {
-          console.error('加载机器统计失败：', err);
-          that.machineStats = { total_machines: 0 };
-        }
-      });
+    async loadMachineStats() {
+      await that.$store.dispatch('$user/loadMachineStats');
+      that.machineStats = that.$store.state.$user.machineStats;
     },
     // 计算基础价格
     calculateBasePrice(row) {

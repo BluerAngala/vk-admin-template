@@ -186,6 +186,8 @@
 </template>
 
 <script>
+import * as paymentService from '@/common/services/payment.js';
+
 let vk = uni.vk;
 
 export default {
@@ -203,7 +205,6 @@ export default {
 			paymentUrl: '',
 			creatingOrder: false,
 			checkingPayment: false,
-			pendingOrderStorageKey: 'vk_pending_pay_order',
 			serviceDialog: { show: false },
 			repairTradeNo: '',
 			repairLoading: false,
@@ -241,61 +242,37 @@ export default {
 	onHide() {},
 	onUnload() { this.clearPollingTimer(); },
 	methods: {
-		init() {
-			this.loadUserPoints();
+		async init() {
+			await this.$store.dispatch('$user/loadPointsInfo');
+			this.userPoints = this.$store.state.$user.pointsInfo.available_points || 0;
 			this.loadPayConfig();
 		},
 
-		// 加载支付接口配置（后台维护，失败时用默认值兜底）
-		loadPayConfig() {
-			vk.callFunction({
-				url: 'admin/points/kh/getPayConfig',
-				success: (data) => {
-					const cfg = data.data || {};
-					const store = cfg.store || {};
-					// 套餐：来自当前店铺配置（含名称/积分/价格/商品key）
-					if (Array.isArray(cfg.packages) && cfg.packages.length) {
-						this.packages = cfg.packages.map(p => ({
-							id: p.id,
-							name: p.name,
-							points: p.points,
-							price: p.price,
-							discount: p.discount || '',
-							description: p.description || '',
-							recommended: !!p.recommended,
-							goods_key: p.goods_key || ''
-						}));
-					}
-					this.payConfig = {
-						base_url: store.base_url || this.payConfig.base_url,
-						channel_id: store.channel_id || this.payConfig.channel_id,
-						query_password: store.query_password || '',
-						store_name: store.store_name || '',
-						pay_order_path: store.pay_order_path || this.payConfig.pay_order_path,
-						pay_query_path: store.pay_query_path || this.payConfig.pay_query_path
-					};
-				},
-				fail: () => {
-					console.warn('[支付] 加载支付配置失败，使用默认配置');
-				}
-			});
+		// 加载支付接口配置
+		async loadPayConfig() {
+			const { packages, payConfig } = await paymentService.loadPayConfig();
+			if (packages.length > 0) {
+				this.packages = packages.map(p => ({
+					id: p.id,
+					name: p.name,
+					points: p.points,
+					price: p.price,
+					discount: p.discount || '',
+					description: p.description || '',
+					recommended: !!p.recommended,
+					goods_key: p.goods_key || ''
+				}));
+			}
+			this.payConfig = payConfig;
 		},
 
-		// 加载用户积分
-		loadUserPoints() {
-			return new Promise((resolve) => {
-				vk.callFunction({
-					url: "admin/points/kh/getBalance",
-					success: (data) => {
-						this.userPoints = (data.data && data.data.available_points) || data.available_points || 0;
-						resolve();
-					},
-					fail: () => { this.userPoints = 0; resolve(); }
-				});
-			});
+		// 加载用户积分（从 Vuex 缓存）
+		async loadUserPoints() {
+			await this.$store.dispatch('$user/loadPointsInfo', { force: true });
+			this.userPoints = this.$store.state.$user.pointsInfo.available_points || 0;
 		},
-		refreshPoints() {
-			this.loadUserPoints();
+		async refreshPoints() {
+			await this.loadUserPoints();
 			vk.toast("刷新成功");
 		},
 
@@ -308,30 +285,7 @@ export default {
 		async createOrder(pkg) {
 			this.creatingOrder = true;
 			try {
-				// ① 调支付网关创建订单（网关地址/通道/商品key/路径取自后台配置）
-			const res = await fetch(`${this.payConfig.base_url}${this.payConfig.pay_order_path}`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					goods_key: pkg.goods_key,
-					quantity: 1,
-					coupon_code: '',
-					channel_id: this.payConfig.channel_id,
-					contact: '13' + this._randomStr(9, '0123456789'),
-					query_password: this.payConfig.query_password,
-					select_cards_ids: [],
-					extend: { juuid: this._randomStr(16) }
-				})
-			});
-				const data = await res.json();
-				if (data.code !== 1) {
-					console.error('[支付] 创建订单失败:', JSON.stringify(data));
-					vk.alert(`创建订单失败\n原因：${data.msg || '未知'}\n套餐：${pkg.name}\ngoods_key：${pkg.goods_key}`, '创建订单失败');
-					return;
-				}
-
-				// ② 保存订单 + 打开支付页 + 启动轮询
-				const { trade_no, payurl } = data.data;
+				const { trade_no, payurl } = await paymentService.createOrder(this.payConfig, pkg);
 				console.log('[支付] 订单创建成功:', { trade_no, payurl, package: pkg.name });
 				this.currentTradeNo = trade_no;
 				this.currentPackageInfo = { ...pkg };
@@ -339,16 +293,13 @@ export default {
 				this.paymentLoading = true;
 				this.pollingStartTime = null;
 				this.paymentElapsed = 0;
-				this._savePendingOrder(trade_no, payurl, pkg);
+				paymentService.savePendingOrder(trade_no, payurl, pkg);
 
-				// 打开支付页（简单 window.open）
 				window.open(payurl, '_blank');
-
-				// 启动轮询
 				this.startPolling(trade_no);
 			} catch (err) {
-				console.error('[支付] 创建订单异常:', err.message, err.stack);
-				vk.alert(`请求支付网关失败\n错误：${err.message}\n请检查网络后重试`, '网络错误');
+				console.error('[支付] 创建订单异常:', err.message);
+				vk.alert(`创建订单失败\n原因：${err.message}\n套餐：${pkg.name}`, '创建订单失败');
 			} finally {
 				this.creatingOrder = false;
 			}
@@ -369,77 +320,47 @@ export default {
 
 		async checkPaymentStatus(trade_no, fromPolling = false) {
 			if (!trade_no) return;
-			// 超时停止
 			if (this.pollingStartTime && (Date.now() - this.pollingStartTime) > this.pollingTimeout) {
 				this.clearPollingTimer();
 				this.paymentElapsed = Math.floor(this.pollingTimeout / 1000);
-				console.warn('[支付] 轮询超时:', { trade_no, elapsed: this.paymentElapsed });
 				if (fromPolling) vk.toast('自动查询已停止，请点击"我已完成支付，立即查询"');
 				return;
 			}
-			// 防并发
 			if (this.checkingPayment) return;
 			this.checkingPayment = true;
 
 			try {
-				// ① 查支付网关（网关地址/路径取自后台配置）
-				const res = await fetch(`${this.payConfig.base_url}${this.payConfig.pay_query_path}`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ trade_no })
-				});
-				const data = await res.json();
-				if (!data || data.code !== 1 || data.msg !== 'success') {
+				const isPaid = await paymentService.queryPayment(this.payConfig, trade_no);
+				if (!isPaid) {
 					this.checkingPayment = false;
-					if (!fromPolling) {
-						console.warn('[支付] 查询未支付:', { trade_no, response: JSON.stringify(data) });
-						vk.alert(`订单暂未支付\n订单号：${trade_no}\n网关返回：${JSON.stringify(data)}`, '未支付');
-					}
+					if (!fromPolling) vk.alert(`订单暂未支付\n订单号：${trade_no}`, '未支付');
 					return;
 				}
 
-				// ② 已支付 → 调云函数入账（最多重试3次）
-				console.log('[支付] 网关确认已支付，开始入账:', { trade_no, package_id: this.currentPackageInfo.id });
+				// 已支付 → 入账
 				const packageInfo = this.currentPackageInfo;
-				let addRes = null;
-				for (let i = 0; i < 3; i++) {
-					addRes = await new Promise(resolve => {
-						vk.callFunction({
-							url: 'admin/points/kh/addPoints',
-							data: { trade_no, package_id: packageInfo.id },
-							success: d => resolve(d),
-							fail: e => resolve({ code: -1, msg: e.msg || '充值失败', detail: e })
-						});
-					});
-					console.log(`[支付] 入账尝试 ${i + 1}/3:`, JSON.stringify(addRes));
-					if (addRes.code === 0 || addRes.code === 1) break;
-					if (addRes.msg && !addRes.msg.includes('支付验证失败')) break;
-					if (i < 2) await new Promise(r => setTimeout(r, 2000));
-				}
+				const addRes = await paymentService.creditPoints(trade_no, packageInfo.id);
 
 				this.checkingPayment = false;
 				this.clearPollingTimer();
 				this.paymentLoading = false;
-				this.clearPendingOrder();
+				paymentService.clearPendingOrder();
 				await this.loadUserPoints();
 
 				if (addRes.code !== 0 && addRes.code !== 1) {
-					console.error('[支付] 入账失败:', { trade_no, package_id: packageInfo.id, response: JSON.stringify(addRes) });
 					vk.alert(
 						`支付成功但充值失败！\n\n订单号：${trade_no}\n套餐：${packageInfo.name}\n错误：${addRes.msg || '未知'}\n\n请联系客服处理，提供以上信息`,
 						'充值失败'
 					);
 					return;
 				}
-				console.log('[支付] 充值成功:', { trade_no, points: addRes.data.total_points, balance: addRes.data.balance });
-				const totalPoints = (addRes.data && addRes.data.total_points) || (packageInfo && packageInfo.points) || 0;
+				const totalPoints = (addRes.data && addRes.data.total_points) || packageInfo.points || 0;
 				const balance = (addRes.data && addRes.data.balance !== undefined) ? addRes.data.balance : this.userPoints;
 				vk.alert(`支付成功！\n获得积分：${totalPoints}积分\n当前余额：${balance}积分`, '支付成功', () => { this.selectedPackage = null; });
 			} catch (err) {
 				this.checkingPayment = false;
-				console.error('[支付] 查询异常:', { trade_no, error: err.message, stack: err.stack });
 				if (!fromPolling) {
-					vk.alert(`支付查询异常\n订单号：${trade_no}\n错误：${err.message}\n\n请截图联系客服`, '查询异常', () => { this.resetPaymentFlowState(); });
+					vk.alert(`支付查询异常\n订单号：${trade_no}\n错误：${err.message}`, '查询异常', () => { this.resetPaymentFlowState(); });
 				}
 			}
 		},
@@ -465,32 +386,21 @@ export default {
 
 		// ========== localStorage 持久化 ==========
 		_savePendingOrder(trade_no, payurl, pkg) {
-			try {
-				localStorage.setItem(this.pendingOrderStorageKey, JSON.stringify({
-					trade_no, payurl, package_id: pkg.id, package_name: pkg.name, points: pkg.points, price: pkg.price, saveTime: Date.now()
-				}));
-			} catch (e) {}
+			paymentService.savePendingOrder(trade_no, payurl, pkg);
 		},
 		restorePendingOrder() {
-			try {
-				const raw = localStorage.getItem(this.pendingOrderStorageKey);
-				if (!raw) return;
-				const d = JSON.parse(raw);
-				if (!d || !d.trade_no || Date.now() - d.saveTime > 15 * 60 * 1000) {
-					localStorage.removeItem(this.pendingOrderStorageKey);
-					return;
-				}
-				this.currentTradeNo = d.trade_no;
-				this.paymentUrl = d.payurl;
-				this.currentPackageInfo = { id: d.package_id, name: d.package_name, points: d.points, price: d.price };
-				this.paymentLoading = true;
-				this.pollingStartTime = null;
-				this.paymentElapsed = 0;
-				this.startPolling(d.trade_no, true);
-			} catch (e) { localStorage.removeItem(this.pendingOrderStorageKey); }
+			const d = paymentService.restorePendingOrder();
+			if (!d) return;
+			this.currentTradeNo = d.trade_no;
+			this.paymentUrl = d.payurl;
+			this.currentPackageInfo = { id: d.package_id, name: d.package_name, points: d.points, price: d.price };
+			this.paymentLoading = true;
+			this.pollingStartTime = null;
+			this.paymentElapsed = 0;
+			this.startPolling(d.trade_no, true);
 		},
 		clearPendingOrder() {
-			try { localStorage.removeItem(this.pendingOrderStorageKey); } catch (e) {}
+			paymentService.clearPendingOrder();
 		},
 
 		// ========== 工具 ==========
@@ -510,11 +420,6 @@ export default {
 			if (this.pollingTimer) clearInterval(this.pollingTimer);
 			this.pollingTimer = null;
 		},
-		_randomStr(len, chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz') {
-			let r = '';
-			for (let i = 0; i < len; i++) r += chars.charAt(Math.floor(Math.random() * chars.length));
-			return r;
-		},
 		showServiceQRCode() { this.serviceDialog.show = true; },
 
 		// ========== 自助修复 ==========
@@ -526,51 +431,23 @@ export default {
 			this.repairResult = null;
 
 			try {
-				const res = await new Promise(resolve => {
-					vk.callFunction({
-						url: 'admin/points/kh/selfRepair',
-						data: { trade_no: trade_no.trim() },
-						success: d => resolve(d),
-						fail: e => resolve({ code: -1, msg: e.msg || '请求失败' })
-					});
-				});
-
+				const res = await paymentService.submitRepair(trade_no);
 				const d = res.data || {};
 				const order = d.order || null;
 
 				if (res.code === 0 && d.status === 'credited') {
-					this.repairResult = {
-						type: 'success',
-						title: '修复成功，积分已到账',
-						order
-					};
+					this.repairResult = { type: 'success', title: '修复成功，积分已到账', order };
 					this.repairTradeNo = '';
 					await this.loadUserPoints();
 				} else if (res.code === 0 && d.status === 'already_credited') {
-					this.repairResult = {
-						type: 'success',
-						title: '该订单积分已到账，无需修复',
-						order
-					};
+					this.repairResult = { type: 'success', title: '该订单积分已到账，无需修复', order };
 				} else if (res.code === 0 && d.status === 'not_paid') {
-					this.repairResult = {
-						type: 'warning',
-						title: '该订单尚未支付',
-						order
-					};
+					this.repairResult = { type: 'warning', title: '该订单尚未支付', order };
 				} else {
-					this.repairResult = {
-						type: 'error',
-						title: res.msg || '核查失败',
-						order
-					};
+					this.repairResult = { type: 'error', title: res.msg || '核查失败', order };
 				}
 			} catch (err) {
-				this.repairResult = {
-					type: 'error',
-					title: '请求异常',
-					desc: err.message || '网络异常，请稍后重试'
-				};
+				this.repairResult = { type: 'error', title: '请求异常', desc: err.message || '网络异常' };
 			} finally {
 				this.repairLoading = false;
 			}

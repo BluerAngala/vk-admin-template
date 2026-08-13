@@ -392,12 +392,10 @@ export default {
     // 初始化
     async init() {
       await that.loadProducts();
-      
-      // 加载保存的字段顺序
       that.loadColumnOrder();
-      
       that.loadStats();
-      that.loadUserPoints();
+      await that.$store.dispatch('$user/loadPointsInfo');
+      that.userPoints = that.$store.state.$user.pointsInfo;
     },
     // 加载字段顺序
     loadColumnOrder() {
@@ -472,16 +470,9 @@ export default {
       });
     },
     // 加载用户积分
-    loadUserPoints() {
-      vk.callFunction({
-        url: "admin/points/kh/getBalance",
-        success: (data) => {
-          that.userPoints = data.data || {
-            available_points: 0,
-            total_points: 0,
-          };
-        },
-      });
+    async loadUserPoints() {
+      await that.$store.dispatch('$user/loadPointsInfo');
+      that.userPoints = that.$store.state.$user.pointsInfo;
     },
     // 跳转到积分商城
     goToPointsShop() {
@@ -504,7 +495,9 @@ export default {
     refresh() {
       that.$refs.table1.refresh();
       that.loadStats();
-      that.loadUserPoints();
+      that.$store.dispatch('$user/loadPointsInfo', { force: true }).then(() => {
+        that.userPoints = that.$store.state.$user.pointsInfo;
+      });
     },
     // 显示积分不足提示（提取公共逻辑）
     showInsufficientPointsAlert(neededPoints) {
