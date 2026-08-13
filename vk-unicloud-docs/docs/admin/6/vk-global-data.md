@@ -8,7 +8,7 @@ sidebarDepth: 0
 
 ## 页面路径
 
-- /pages_plugs/system_uni/vk-global-data
+- /pages_plugs/system-uni/vk-global-data
 
 ## 相关云函数路径
 

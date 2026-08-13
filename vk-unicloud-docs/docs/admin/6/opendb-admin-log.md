@@ -8,7 +8,7 @@ sidebarDepth: 0
 
 ## 页面路径
 
-- /pages_plugs/system_uni/opendb-admin-log
+- /pages_plugs/system-uni/opendb-admin-log
 
 ## 相关云函数路径
 

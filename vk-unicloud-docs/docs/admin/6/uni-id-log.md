@@ -8,7 +8,7 @@ sidebarDepth: 0
 
 ## 页面路径
 
-- /pages_plugs/system_uni/uni-id-log
+- /pages_plugs/system-uni/uni-id-log
 
 ## 相关云函数路径
 

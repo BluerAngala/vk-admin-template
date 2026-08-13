@@ -4,7 +4,7 @@
     "name": "产品列表",
     "comment": "查看分配给我的产品",
     "icon": "el-icon-box",
-    "url": "/pages/my-products/my-products",
+    "url": "/pages/my-products/index",
     "sort": 100
   },
   {
@@ -12,7 +12,7 @@
     "name": "卡密管理",
     "comment": "用户生成和查看卡密",
     "icon": "el-icon-tickets",
-    "url": "/pages/card-manage/card-manage",
+    "url": "/pages/card-manage/index",
     "sort": 200
   },
   {
@@ -20,7 +20,7 @@
     "name": "购买积分",
     "comment": "购买积分套餐",
     "icon": "el-icon-shopping-cart-2",
-    "url": "/pages/points-shop/points-shop",
+    "url": "/pages/points-shop/index",
     "sort": 300
   },
   {
@@ -36,7 +36,7 @@
     "name": "邀请中心",
     "comment": "邀请好友获得返利",
     "icon": "el-icon-share",
-    "url": "/pages/invite-center/invite-center",
+    "url": "/pages/invite-center/index",
     "sort": 500
   },
   {
@@ -44,7 +44,7 @@
     "name": "个人中心",
     "comment": "查看个人信息和积分",
     "icon": "el-icon-user",
-    "url": "/pages/user-center/user-center",
+    "url": "/pages/user-center/index",
     "sort": 600
   },
   {
@@ -52,7 +52,7 @@
     "name": "使用帮助",
     "comment": "查看使用帮助文档",
     "icon": "el-icon-question",
-    "url": "/pages/docs/help/help",
+    "url": "/pages/docs/help/index",
     "sort": 700
   },
   {
@@ -67,21 +67,21 @@
         "name": "浏览器插件",
         "comment": "查看以往开发的浏览器插件产品",
         "icon": "el-icon-link",
-        "url": "/pages/docs/crx-extensions/crx-extensions"
+        "url": "/pages/docs/crx-extensions/index"
       },
       {
         "menu_id": "table",
         "name": "定制多维表",
         "comment": "查看以往开发的多维表产品",
         "icon": "el-icon-s-grid",
-        "url": "/pages/docs/table/table"
+        "url": "/pages/docs/table/index"
       },
       {
         "menu_id": "software",
         "name": "定制软件",
         "comment": "查看以往开发的软件产品",
         "icon": "el-icon-monitor",
-        "url": "/pages/docs/software/software"
+        "url": "/pages/docs/software/index"
       }
     ]
   },

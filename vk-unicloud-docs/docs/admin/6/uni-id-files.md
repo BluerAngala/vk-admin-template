@@ -9,7 +9,7 @@ sidebarDepth: 0
 ## 页面路径@pagepath
 
 ```
-/pages_plugs/system_uni/uni-id-files/list
+/pages_plugs/system-uni/uni-id-files/list
 ```
 
 ## 相关云函数路径@cloudpath

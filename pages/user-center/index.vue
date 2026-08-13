@@ -557,7 +557,7 @@ export default {
 		// 去购买卡密
 		goBuyCard(product) {
 			uni.navigateTo({
-				url: '/pages/card-manage/card-manage'
+				url: '/pages/card-manage/index'
 			});
 		},
 		// 切换卡片翻转状态

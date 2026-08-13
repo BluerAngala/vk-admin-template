@@ -107,13 +107,13 @@ export default {
 					label: '卡密管理',
 					icon: 'el-icon-tickets',
 					gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-					path: '/pages/card-manage/card-manage'
+					path: '/pages/card-manage/index'
 				},
 				{
 					label: '定制插件',
 					icon: 'el-icon-link',
 					gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-					path: '/pages/docs/crx-extensions/crx-extensions'
+					path: '/pages/docs/crx-extensions/index'
 				},
 				{
 					label: '定制AI工具',
@@ -125,13 +125,13 @@ export default {
 					label: '定制软件',
 					icon: 'el-icon-monitor',
 					gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-					path: '/pages/docs/software/software'
+					path: '/pages/docs/software/index'
 				},
 				{
 					label: '定制多维表',
 					icon: 'el-icon-data-board',
 					gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-					path: '/pages/docs/table/table'
+					path: '/pages/docs/table/index'
 				},
 				{
 					label: '更多需求',
@@ -246,7 +246,7 @@ export default {
 		// 跳转产品列表页
 		goToProductList() {
 			this.dialog.show = false;
-			vk.navigateTo('/pages/my-products/my-products');
+			vk.navigateTo('/pages/my-products/index');
 		}
 	},
 	// 计算属性

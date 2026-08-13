@@ -60,7 +60,7 @@
 | `system/rebate-records/list` | 返利记录 | `admin/rebate/sys/*` |
 | `system/ticket/list` | 工单管理（管理员） | `admin/ticket/sys/*` |
 
-### 运维工具（`pages_plugs/system_uni/`）
+### 运维工具（`pages_plugs/system-uni/`）
 
 | 页面 | 功能 |
 |---|---|
@@ -126,13 +126,13 @@
 ### 生产菜单（`static_menu/menu.json`）
 
 ```
-├── 产品列表 → /pages/my-products/my-products
-├── 卡密管理 → /pages/card-manage/card-manage
-├── 购买积分 → /pages/points-shop/points-shop
+├── 产品列表 → /pages/my-products/index
+├── 卡密管理 → /pages/card-manage/index
+├── 购买积分 → /pages/points-shop/index
 ├── 我的工单 → /pages/ticket/list
-├── 个人中心 → /pages/user-center/user-center
-├── 邀请中心 → /pages/invite-center/invite-center
-├── 使用帮助 → /pages/docs/help/help
+├── 个人中心 → /pages/user-center/index
+├── 邀请中心 → /pages/invite-center/index
+├── 使用帮助 → /pages/docs/help/index
 ├── 更多产品
 │   ├── 浏览器插件 → /pages/docs/crx-extensions/
 │   ├── 定制多维表 → /pages/docs/table/

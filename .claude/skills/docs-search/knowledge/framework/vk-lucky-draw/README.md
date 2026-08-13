@@ -266,7 +266,7 @@ vk.navigateToLuckyDraw({
 
 ### 云端 API@api-cloud
 
-云端 API 已集成到 [vk-admin 框架](https://ext.dcloud.net.cn/plugin?id=5043) 中（vk-admin 的版本需 ≥ 1.21.0），打开页面 `/pages_plugs/system_uni/lucky-draw/list.vue` 体验
+云端 API 已集成到 [vk-admin 框架](https://ext.dcloud.net.cn/plugin?id=5043) 中（vk-admin 的版本需 ≥ 1.21.0），打开页面 `/pages_plugs/system-uni/lucky-draw/list.vue` 体验
 
 如果未使用 vk-admin，也可以通过 http 接口对接，[http 接口文档](https://osxlqv0f4c.apifox.cn/314777965e0)
 

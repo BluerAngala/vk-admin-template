@@ -1045,7 +1045,7 @@ export default {
       // 延迟一下再跳转，确保弹窗已关闭
       setTimeout(() => {
         uni.navigateTo({
-          url: "/pages/points-shop/points-shop",
+          url: "/pages/points-shop/index",
           fail: (err) => {
             console.error('跳转失败：', err);
             vk.toast("页面跳转失败，请重试");
@@ -1084,7 +1084,7 @@ export default {
       if (!firstProduct) {
         vk.alert("暂无可用产品，请先购买产品后再生成卡密", "提示", () => {
           uni.navigateTo({
-            url: "/pages/my-products/my-products",
+            url: "/pages/my-products/index",
             fail: (err) => {
               console.error('跳转失败：', err);
               vk.toast("页面跳转失败，请重试");
@@ -1565,5 +1565,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "./card-manage.scss";
+@import "./index.scss";
 </style>

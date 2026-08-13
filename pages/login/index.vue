@@ -192,7 +192,7 @@ export default {
 			// #endif
 			// #ifndef H5
 			uni.navigateTo({
-				url: '/pages/webview/webview?url=' + encodeURIComponent(url)
+				url: '/pages/webview/index?url=' + encodeURIComponent(url)
 			});
 			// #endif
 		}

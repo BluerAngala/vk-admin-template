@@ -94,7 +94,7 @@
   {
     "_id": "system-uni-uni-id-files",
     "sort": 1,
-    "url": "/pages_plugs/system_uni/uni-id-files/list",
+    "url": "/pages_plugs/system-uni/uni-id-files/list",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-folder-opened",
@@ -110,13 +110,13 @@
     "name": "系统缓存管理",
     "parent_id": "system-uni",
     "sort": 2,
-    "url": "/pages_plugs/system_uni/vk-global-data",
+    "url": "/pages_plugs/system-uni/vk-global-data",
     "_add_time": 1596416400000
   },
   {
     "_id": "system-uni-vk-components-dynamic",
     "sort": 3,
-    "url": "/pages_plugs/system_uni/vk-components-dynamic",
+    "url": "/pages_plugs/system-uni/vk-components-dynamic",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "",
@@ -127,7 +127,7 @@
   {
     "_id": "system-uni-vk-pay-orders",
     "sort": 4,
-    "url": "/pages_plugs/system_uni/vk-pay-orders",
+    "url": "/pages_plugs/system-uni/vk-pay-orders",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "",
@@ -138,7 +138,7 @@
   {
     "_id": "system-uni-uni-id-log",
     "sort": 8,
-    "url": "/pages_plugs/system_uni/uni-id-log",
+    "url": "/pages_plugs/system-uni/uni-id-log",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "",
@@ -149,7 +149,7 @@
   {
     "_id": "system-uni-opendb-admin-log",
     "sort": 9,
-    "url": "/pages_plugs/system_uni/opendb-admin-log",
+    "url": "/pages_plugs/system-uni/opendb-admin-log",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "",
@@ -160,7 +160,7 @@
   {
     "_id": "system-uni-vk-error-log",
     "sort": 10,
-    "url": "/pages_plugs/system_uni/vk-error-log",
+    "url": "/pages_plugs/system-uni/vk-error-log",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "",
@@ -171,7 +171,7 @@
   {
     "_id": "system-vk-ws-connection",
     "sort": 11,
-    "url": "/pages_plugs/system_uni/vk-ws-connection",
+    "url": "/pages_plugs/system-uni/vk-ws-connection",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "",
@@ -183,7 +183,7 @@
     "_id": "system-vk-lucky-draws",
     "menu_id": "system-vk-lucky-draws",
     "sort": 12,
-    "url": "/pages_plugs/system_uni/lucky-draw/list",
+    "url": "/pages_plugs/system-uni/lucky-draw/list",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "vk-icon-present",
@@ -205,7 +205,7 @@
   {
     "_id": "system-uni-statistics",
     "sort": 1,
-    "url": "/pages/system/statistics/statistics",
+    "url": "/pages/system/statistics/index",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-data-analysis",

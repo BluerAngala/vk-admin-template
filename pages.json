@@ -10,55 +10,55 @@
       }
     },
     {
-      "path": "pages/my-products/my-products",
+      "path": "pages/my-products/index",
       "style": {
         "navigationBarTitleText": "我的产品"
       }
     },
     {
-      "path": "pages/card-manage/card-manage",
+      "path": "pages/card-manage/index",
       "style": {
         "navigationBarTitleText": "卡密管理"
       }
     },
     {
-      "path": "pages/user-center/user-center",
+      "path": "pages/user-center/index",
       "style": {
         "navigationBarTitleText": "个人中心"
       }
     },
     {
-      "path": "pages/points-shop/points-shop",
+      "path": "pages/points-shop/index",
       "style": {
         "navigationBarTitleText": "购买积分"
       }
     },
     {
-      "path": "pages/docs/crx-extensions/crx-extensions",
+      "path": "pages/docs/crx-extensions/index",
       "style": {
         "navigationBarTitleText": "浏览器插件"
       }
     },
     {
-      "path": "pages/docs/table/table",
+      "path": "pages/docs/table/index",
       "style": {
         "navigationBarTitleText": ""
       }
     },
     {
-      "path": "pages/docs/software/software",
+      "path": "pages/docs/software/index",
       "style": {
         "navigationBarTitleText": "定制软件"
       }
     },
     {
-      "path": "pages/docs/help/help",
+      "path": "pages/docs/help/index",
       "style": {
         "navigationBarTitleText": "使用帮助"
       }
     },
     {
-      "path": "pages/webview/webview",
+      "path": "pages/webview/index",
       "style": {
         "topWindow": false,
         "leftWindow": false,
@@ -72,7 +72,7 @@
       }
     },
     {
-      "path": "pages/system/statistics/statistics",
+      "path": "pages/system/statistics/index",
       "style": {
         "navigationBarTitleText": "购买统计"
       }
@@ -84,7 +84,7 @@
       }
     },
     {
-      "path": "pages/invite-center/invite-center",
+      "path": "pages/invite-center/index",
       "style": {
         "navigationBarTitleText": "邀请中心"
       }
@@ -237,16 +237,16 @@
         { "path": "system/menu/list" },
         { "path": "system/app/list" },
         { "path": "system/app-upgrade-center/list" },
-        { "path": "system_uni/vk-global-data" },
-        { "path": "system_uni/uni-id-log" },
-        { "path": "system_uni/opendb-admin-log" },
-        { "path": "system_uni/vk-components-dynamic" },
-        { "path": "system_uni/uni-id-files/list" },
-        { "path": "system_uni/vk-pay-orders" },
-        { "path": "system_uni/vk-ws-connection" },
-        { "path": "system_uni/vk-error-log" },
+        { "path": "system-uni/vk-global-data" },
+        { "path": "system-uni/uni-id-log" },
+        { "path": "system-uni/opendb-admin-log" },
+        { "path": "system-uni/vk-components-dynamic" },
+        { "path": "system-uni/uni-id-files/list" },
+        { "path": "system-uni/vk-pay-orders" },
+        { "path": "system-uni/vk-ws-connection" },
+        { "path": "system-uni/vk-error-log" },
         {
-          "path": "system_uni/lucky-draw/list",
+          "path": "system-uni/lucky-draw/list",
           "style": { "navigationBarTitleText": "抽奖活动" }
         },
         {

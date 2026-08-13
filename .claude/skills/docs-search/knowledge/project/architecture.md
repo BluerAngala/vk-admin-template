@@ -92,7 +92,7 @@ leftWindow.vue 渲染
 |---|---|
 | `pages/` | 主页面：首页、登录、用户中心等 |
 | `pages_plugs/system/` | 管理 CRUD：user、role、permission、menu、app |
-| `pages_plugs/system_uni/` | uni 专属：全局数据、日志、文件管理 |
+| `pages_plugs/system-uni/` | uni 专属：全局数据、日志、文件管理 |
 | `pages_template/` | 开发环境组件/Element UI 演示页 |
 | `uni_modules/vk-unicloud/` | **核心框架**：router、userCenter、pubfn、navigate、storage |
 | `uni_modules/uni-id/` | 用户认证模块 |

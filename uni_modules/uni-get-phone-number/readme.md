@@ -64,7 +64,7 @@
         const agreement = agreements.find(agreement => agreement.text === tag)
         if (agreement) {
           uni.navigateTo({
-            url: `/pages/webview/webview?url=${encodeURIComponent(agreement.url)}`
+            url: `/pages/webview/index?url=${encodeURIComponent(agreement.url)}`
           })
         }
       },

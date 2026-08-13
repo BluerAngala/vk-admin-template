@@ -1,7 +1,7 @@
 ## 1.21.0（2025-07-07）
 * 【升级】`vk-unicloud-admin-ui` 的npm包（执行`npm i vk-unicloud-admin-ui@1.20.15`）
 * 【升级】`vk依赖` [详情](https://ext.dcloud.net.cn/plugin?id=4157&update_log)
-* 【重要】新增抽奖活动管理页面 `/pages_plugs/system_uni/lucky-draw/list`
+* 【重要】新增抽奖活动管理页面 `/pages_plugs/system-uni/lucky-draw/list`
 * 【修复】一些细节问题
 
 ##### 框架更新步骤 [点击查看](https://vkdoc.fsq.pub/admin/1/update.html)
@@ -70,7 +70,7 @@
 * 【升级】`vk依赖` [详情](https://ext.dcloud.net.cn/plugin?id=4157&update_log)
 * 【修复】万能表格 type `image`、`file` 属性 `beforeRemove` 不生效的问题
 * 【修复】万能表格 type `radio` 在谷歌浏览器运行正常，但控制台会报错的问题
-* 【新增】系统错误日志页面 `/pages_plugs/system_uni/vk-error-log`
+* 【新增】系统错误日志页面 `/pages_plugs/system-uni/vk-error-log`
 * 【优化】万能表格 radio和select在单选模式下，新增属性defaultIndex，控制默认选择第几个
 
 ##### 框架更新步骤 [点击查看](https://vkdoc.fsq.pub/admin/1/update.html)
@@ -79,7 +79,7 @@
 * 【升级】`vk依赖` [详情](https://ext.dcloud.net.cn/plugin?id=4157&update_log)
 * 【修复】万能表格 type `image`、`file` 属性 `beforeRemove` 不生效的问题
 * 【修复】万能表格 type `radio` 在谷歌浏览器运行正常，但控制台会报错的问题
-* 【新增】系统错误日志页面 `/pages_plugs/system_uni/vk-error-log`
+* 【新增】系统错误日志页面 `/pages_plugs/system-uni/vk-error-log`
 * 【优化】万能表格 radio和select在单选模式下，新增属性defaultIndex，控制默认选择第几个
 
 ##### 框架更新步骤 [点击查看](https://vkdoc.fsq.pub/admin/1/update.html)
@@ -128,7 +128,7 @@
 ## 1.19.11（2024-08-12）
 * 【升级】`vk-unicloud-admin-ui` 包升级至 `1.19.10`
 * 【升级】`vk依赖` [详情](https://ext.dcloud.net.cn/plugin?id=4157&update_log)
-* 【重要】新增WebSocket连接管理页面 `/pages_plugs/system_uni/vk-ws-connection.vue`
+* 【重要】新增WebSocket连接管理页面 `/pages_plugs/system-uni/vk-ws-connection.vue`
 * 【调整】云函数router默认的node版本调整为node18
 * 【修复】group内的元素tips属性不生效的问题
 * 【优化】素材选择组件，视频默认缩略图支持扩展存储
@@ -217,7 +217,7 @@
 * 【优化】万能表格 `vk-data-table-query` 组件新增 reset 事件 [传送门](https://vkdoc.fsq.pub/admin/2/table.html#%E4%B8%87%E8%83%BD%E8%A1%A8%E6%A0%BC%E6%90%9C%E7%B4%A2%E7%BB%84%E4%BB%B6)
 * 【优化】万能表格 新增表头插槽 [传送门](https://vkdoc.fsq.pub/admin/2/table.html#%E8%A1%A8%E5%A4%B4%E6%8F%92%E6%A7%BD)
 * 【优化】万能表单 属性 `beforeAction` 支持 async
-* 【优化】内置页面 `/pages_plugs/system_uni/uni-id-log` 内的 login_type 字段显示规则
+* 【优化】内置页面 `/pages_plugs/system-uni/uni-id-log` 内的 login_type 字段显示规则
 * 【优化】万能表单 `remote-select` 和 `cascader` 组件请求接口的触发时机
 
 ##### 框架更新步骤 [点击查看](https://vkdoc.fsq.pub/admin/1/update.html)
@@ -296,7 +296,7 @@
 * 【修复】`万能表单` `object` 内 `disabled` 不生效的bug
 * 【修复】`万能表格` `:searched-clean-selection="false"` 时，分页会导致多选框清空的问题
 * 【修复】`万能表格` 点击右侧按钮时可能会出现请先选中一行的bug
-* 【优化】`pages_plugs/system_uni/vk-pay-orders.vue`页面新增支付渠道区分
+* 【优化】`pages_plugs/system-uni/vk-pay-orders.vue`页面新增支付渠道区分
 * 【优化】`万能表格` 导出的文件名支持自定义扩展名
 * 【优化】`万能表格` 新增 `getRowIndex` 方法
 
@@ -1617,7 +1617,7 @@ let item = that.$refs.table1.getCurrentRow(true);
 ### vk-unicloud-admin 框架研究Q群:`22466457` 如有问题或建议可以在群内讨论。
 ### 更新内容
 #### 1、【升级】`vk-unicloud-admin-ui` 包升级至 `1.2.9`
-#### 2、【修复】`素材管理`优化。需替换目录`/pages_plugs/system_uni/uni-id-files/`
+#### 2、【修复】`素材管理`优化。需替换目录`/pages_plugs/system-uni/uni-id-files/`
 #### 3、【优化】`万能表单`的 `remote-select`、 `radio`、 `checkbox`新增属性 `dataPreprocess`（数据预处理函数）[点击查看](https://gitee.com/vk-uni/vk-uni-cloud-router/wikis/pages?sort_id=4050267&doc_id=975983)
 #### 4、【修复】`万能表单`的 `file-select` 已知bug [点击查看](https://gitee.com/vk-uni/vk-uni-cloud-router/wikis/pages?sort_id=4176041&doc_id=975983)
 
