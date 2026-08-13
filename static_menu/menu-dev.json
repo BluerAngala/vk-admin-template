@@ -5,7 +5,7 @@
 		"comment": "以下菜单在正式环境不会出现!",
 		"icon": "el-icon-star-off",
 		"url": "",
-		"sort": 999,
+		"sort": 1100,
 		"children": [{
 				"menu_id": "vk-data-icon",
 				"name": "Icon 图标",
@@ -253,7 +253,7 @@
 		"comment": "以下菜单在正式环境不会出现!",
 		"icon": "el-icon-star-off",
 		"url": "",
-		"sort": 1000,
+		"sort": 1200,
 		"children": [{
 				"menu_id": "__demo__popup",
 				"name": "弹窗页面",
@@ -416,7 +416,7 @@
 		"comment": "以下菜单在正式环境不会出现!",
 		"icon": "el-icon-star-off",
 		"url": "",
-		"sort": 1001,
+		"sort": 1300,
 		"children": [{
 			"menu_id": "__utils__vk-form-visualizer",
 			"name": "表单可视化设计器",
@@ -430,7 +430,7 @@
 		"comment": "以下菜单在正式环境不会出现!",
 		"icon": "el-icon-star-off",
 		"url": "",
-		"sort": 1002,
+		"sort": 1400,
 		"children": [{
 				"menu_id": "__links__1",
 				"name": "admin框架文档",

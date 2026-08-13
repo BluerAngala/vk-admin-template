@@ -1,16 +1,28 @@
 <template>
 	<scroll-view class="sidebar" :class="classCom" scroll-y="true" v-loading="!vk.getVuex('$app.inited')" :style="styleCom">
-		<vk-data-menu-nav
-			v-if="vk.getVuex('$app.inited')"
-			:data="vk.getVuex('$app.navMenu')"
-			:unique-opened="true"
-			:collapse="vk.getVuex('$app.leftCollapse')"
-			:collapse-transition="false"
-			:theme="theme"
-			default-menu-icon="el-icon-folder-opened"
-			default-sub-menu-icon="el-icon-tickets"
-			@select="select"
-		></vk-data-menu-nav>
+		<template v-if="vk.getVuex('$app.inited')">
+			<template v-for="(group, idx) in menuGroups">
+				<!-- 分割线 -->
+				<view v-if="group.divider" :key="'d-' + idx" class="menu-divider">
+					<view class="menu-divider__line"></view>
+					<text class="menu-divider__label">{{ group.label }}</text>
+					<view class="menu-divider__line"></view>
+				</view>
+				<!-- 菜单组 -->
+				<vk-data-menu-nav
+					v-else-if="group.items.length > 0"
+					:key="'m-' + idx"
+					:data="group.items"
+					:unique-opened="true"
+					:collapse="vk.getVuex('$app.leftCollapse')"
+					:collapse-transition="false"
+					:theme="theme"
+					default-menu-icon="el-icon-folder-opened"
+					default-sub-menu-icon="el-icon-tickets"
+					@select="select"
+				></vk-data-menu-nav>
+			</template>
+		</template>
 	</scroll-view>
 </template>
 
@@ -43,6 +55,28 @@
 		},
 		// 计算属性
 		computed: {
+			menuGroups() {
+				let navMenu = vk.getVuex('$app.navMenu') || [];
+				let groups = [];
+				let current = [];
+
+				for (let i = 0; i < navMenu.length; i++) {
+					let item = navMenu[i];
+					if (item.type === 'divider') {
+						if (current.length > 0) {
+							groups.push({ items: current });
+							current = [];
+						}
+						groups.push({ divider: true, label: item.name || '' });
+					} else {
+						current.push(item);
+					}
+				}
+				if (current.length > 0) {
+					groups.push({ items: current });
+				}
+				return groups;
+			},
 			styleCom(){
 				let theme = this.theme;
 				if (theme && theme.use) {
@@ -86,5 +120,34 @@
 	.center{
 		text-align: center;
 		margin-top: 100px;
+	}
+
+	/* 菜单分割线 */
+	.menu-divider {
+		display: flex;
+		align-items: center;
+		padding: 8px 20px;
+		gap: 8px;
+	}
+
+	.menu-divider__line {
+		flex: 1;
+		height: 1px;
+		background-color: rgba(255, 255, 255, 0.12);
+	}
+
+	.menu-divider__label {
+		font-size: 11px;
+		color: rgba(255, 255, 255, 0.4);
+		white-space: nowrap;
+		letter-spacing: 1px;
+	}
+
+	/* 折叠状态隐藏文字 */
+	.sidebar.collapse .menu-divider__label {
+		display: none;
+	}
+	.sidebar.collapse .menu-divider {
+		padding: 8px 10px;
 	}
 </style>

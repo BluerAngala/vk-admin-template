@@ -5,7 +5,7 @@
     "comment": "查看分配给我的产品",
     "icon": "el-icon-box",
     "url": "/pages/my-products/my-products",
-    "sort": 887
+    "sort": 100
   },
   {
     "menu_id": "card-key",
@@ -13,7 +13,7 @@
     "comment": "用户生成和查看卡密",
     "icon": "el-icon-tickets",
     "url": "/pages/card-manage/card-manage",
-    "sort": 888
+    "sort": 200
   },
   {
     "menu_id": "points-shop",
@@ -21,7 +21,7 @@
     "comment": "购买积分套餐",
     "icon": "el-icon-shopping-cart-2",
     "url": "/pages/points-shop/points-shop",
-    "sort": 898
+    "sort": 300
   },
   {
     "menu_id": "my-tickets",
@@ -29,15 +29,7 @@
     "comment": "提交工单、查看工单进度",
     "icon": "el-icon-s-order",
     "url": "/pages/ticket/list",
-    "sort": 898.1
-  },
-  {
-    "menu_id": "user-center",
-    "name": "个人中心",
-    "comment": "查看个人信息和积分",
-    "icon": "el-icon-user",
-    "url": "/pages/user-center/user-center",
-    "sort": 899
+    "sort": 400
   },
   {
     "menu_id": "invite-center",
@@ -45,7 +37,15 @@
     "comment": "邀请好友获得返利",
     "icon": "el-icon-share",
     "url": "/pages/invite-center/invite-center",
-    "sort": 898.5
+    "sort": 500
+  },
+  {
+    "menu_id": "user-center",
+    "name": "个人中心",
+    "comment": "查看个人信息和积分",
+    "icon": "el-icon-user",
+    "url": "/pages/user-center/user-center",
+    "sort": 600
   },
   {
     "menu_id": "help",
@@ -53,14 +53,14 @@
     "comment": "查看使用帮助文档",
     "icon": "el-icon-question",
     "url": "/pages/docs/help/help",
-    "sort": 900
+    "sort": 700
   },
   {
     "menu_id": "docs",
     "name": "更多产品",
     "comment": "查看更多内容",
     "icon": "el-icon-more",
-    "sort": 901,  
+    "sort": 800,
     "children": [
       {
         "menu_id": "crx-extensions",
@@ -84,6 +84,18 @@
         "url": "/pages/docs/software/software"
       }
     ]
+  },
+  {
+    "menu_id": "__divider_admin__",
+    "type": "divider",
+    "name": "管理员专属",
+    "sort": 850
+  },
+  {
+    "menu_id": "__divider_dev__",
+    "type": "divider",
+    "name": "开发环境专属",
+    "sort": 1050
   },
   {
     "menu_id": "vk-in",
