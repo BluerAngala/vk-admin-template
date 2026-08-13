@@ -716,7 +716,7 @@
 			{
 				"_id": "system-uni-product-manage",
 				"sort": 0,
-				"url": "/pages/system/product/list",
+				"url": "/pages/system/product/product",
 				"_add_time": 1596416400000,
 				"enable": true,
 				"icon": "el-icon-goods",
@@ -728,7 +728,7 @@
 			{
 				"_id": "system-uni-statistics",
 				"sort": 1,
-				"url": "/pages/system/statistics/index",
+				"url": "/pages/system/statistics/statistics",
 				"_add_time": 1596416400000,
 				"enable": true,
 				"icon": "el-icon-data-analysis",

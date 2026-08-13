@@ -1,0 +1,52 @@
+// 迁移自定义页面路径：从 pages_plugs/system/ → pages/system/
+// 同时修复文件命名：list.vue → {文件夹名}.vue
+// 执行方式：uniCloud 控制台 JQL 管理器
+
+// 1. 产品管理
+db.collection('opendb-admin-menus').where({
+  menu_id: 'system-uni-product-manage'
+}).update({
+  url: '/pages/system/product/product'
+});
+
+// 2. 产品管理统计
+db.collection('opendb-admin-menus').where({
+  menu_id: 'system-uni-statistics'
+}).update({
+  url: '/pages/system/statistics/statistics'
+});
+
+// 3. 公告管理
+db.collection('opendb-admin-menus').where({
+  menu_id: 'system-uni-announcement'
+}).update({
+  url: '/pages/system/announcement/announcement'
+});
+
+// 4. 支付接口配置
+db.collection('opendb-admin-menus').where({
+  menu_id: 'system-uni-points-pay-config'
+}).update({
+  url: '/pages/system/points-pay-config/points-pay-config'
+});
+
+// 5. 工单管理（如有菜单条目）
+db.collection('opendb-admin-menus').where({
+  url: '/pages_plugs/system/ticket/list'
+}).update({
+  url: '/pages/system/ticket/ticket'
+});
+
+// 6. 返利配置（如有菜单条目）
+db.collection('opendb-admin-menus').where({
+  url: '/pages_plugs/system/rebate-config/list'
+}).update({
+  url: '/pages/system/rebate-config/rebate-config'
+});
+
+// 7. 返利记录（如有菜单条目）
+db.collection('opendb-admin-menus').where({
+  url: '/pages_plugs/system/rebate-records/list'
+}).update({
+  url: '/pages/system/rebate-records/rebate-records'
+});

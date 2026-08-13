@@ -6,7 +6,7 @@
 db.collection('opendb-admin-menus').add({
   menu_id: 'system-uni-points-pay-config',
   name: '支付接口配置',
-  url: '/pages_plugs/system/points-pay-config/list',
+  url: '/pages/system/points-pay-config/list',
   icon: 'el-icon-coin',
   comment: '配置积分购买支付网关、通道、商户凭证和套餐商品key',
   parent_id: 'system-uni',

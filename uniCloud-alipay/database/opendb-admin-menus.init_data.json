@@ -193,7 +193,7 @@
   {
     "_id": "system-uni-product-manage",
     "sort": 0,
-    "url": "/pages/system/product/list",
+    "url": "/pages/system/product/product",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-goods",
@@ -205,7 +205,7 @@
   {
     "_id": "system-uni-statistics",
     "sort": 1,
-    "url": "/pages/system/statistics/index",
+    "url": "/pages/system/statistics/statistics",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-data-analysis",
@@ -217,7 +217,7 @@
   {
     "_id": "system-uni-announcement",
     "sort": 2,
-    "url": "/pages/system/announcement/list",
+    "url": "/pages/system/announcement/announcement",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-bell",
@@ -229,7 +229,7 @@
   {
     "_id": "system-uni-points-pay-config",
     "sort": 3,
-    "url": "/pages_plugs/system/points-pay-config/list",
+    "url": "/pages/system/points-pay-config/points-pay-config",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-coin",

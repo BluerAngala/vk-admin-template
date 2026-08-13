@@ -66,19 +66,19 @@
       }
     },
     {
-      "path": "pages/system/product/list",
+      "path": "pages/system/product/product",
       "style": {
         "navigationBarTitleText": "产品管理"
       }
     },
     {
-      "path": "pages/system/statistics/index",
+      "path": "pages/system/statistics/statistics",
       "style": {
         "navigationBarTitleText": "购买统计"
       }
     },
     {
-      "path": "pages/system/announcement/list",
+      "path": "pages/system/announcement/announcement",
       "style": {
         "navigationBarTitleText": "公告管理"
       }
@@ -213,6 +213,30 @@
         "enablePullDownRefresh": false,
         "navigationBarTitleText": "实名认证"
     }
+},
+{
+    "path": "pages/system/ticket/ticket",
+    "style": {
+        "navigationBarTitleText": "工单管理"
+    }
+},
+{
+    "path": "pages/system/rebate-config/rebate-config",
+    "style": {
+        "navigationBarTitleText": "返利配置"
+    }
+},
+{
+    "path": "pages/system/rebate-records/rebate-records",
+    "style": {
+        "navigationBarTitleText": "返利记录"
+    }
+},
+{
+    "path": "pages/system/points-pay-config/points-pay-config",
+    "style": {
+        "navigationBarTitleText": "支付接口配置"
+    }
 }
 ],
   "subPackages": [
@@ -248,22 +272,6 @@
         {
           "path": "system-uni/lucky-draw/list",
           "style": { "navigationBarTitleText": "抽奖活动" }
-        },
-        {
-          "path": "system/rebate-config/list",
-          "style": { "navigationBarTitleText": "返利配置" }
-        },
-        {
-          "path": "system/points-pay-config/list",
-          "style": { "navigationBarTitleText": "支付接口配置" }
-        },
-        {
-          "path": "system/rebate-records/list",
-          "style": { "navigationBarTitleText": "返利记录" }
-        },
-        {
-          "path": "system/ticket/list",
-          "style": { "navigationBarTitleText": "工单管理" }
         }
       ]
     }
