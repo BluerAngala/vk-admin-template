@@ -96,6 +96,9 @@ export default {
 				success: (res) => {
 					vk.toast('验证码已发送', 'success');
 					this.startCountdown();
+				},
+				fail: (err) => {
+					vk.toast(err.msg || err.message || "发送失败", "none");
 				}
 			});
 		},
@@ -160,6 +163,9 @@ export default {
 						password2: ""
 					};
 					this.$emit('success');
+				},
+				fail: (err) => {
+					vk.toast(err.msg || err.message || "重置失败", "none");
 				}
 			});
 		}

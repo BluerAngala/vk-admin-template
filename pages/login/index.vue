@@ -35,6 +35,7 @@
 					:invite-code="inviteCode"
 					:inviter-info="inviterInfo"
 					@success="onRegisterSuccess"
+					@login-success="onLoginSuccess"
 					@open-agreement="openAgreement"
 				/>
 

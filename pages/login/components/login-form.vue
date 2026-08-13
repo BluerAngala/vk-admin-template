@@ -121,6 +121,9 @@ export default {
 						vk.setVuex("$user.login.password", "");
 					}
 					this.$emit('success', data);
+				},
+				fail: err => {
+					vk.toast(err.msg || err.message || "登录失败", "none");
 				}
 			});
 		}

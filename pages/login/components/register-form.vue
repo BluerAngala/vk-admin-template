@@ -158,11 +158,25 @@ export default {
 				},
 				success: (data) => {
 					this.loading = false;
-					vk.toast("注册成功", "success");
-					this.$emit('success', { username });
+					vk.toast("注册成功，正在自动登录...", "success");
+					// 注册成功后自动登录
+					vk.userCenter.login({
+						data: {
+							username: this.form.username,
+							password: this.form.password
+						},
+						success: (loginData) => {
+							this.$emit('login-success', loginData);
+						},
+						fail: (err) => {
+							// 自动登录失败，回退到手动登录
+							this.$emit('success', { username: this.form.username });
+						}
+					});
 				},
 				fail: (err) => {
 					this.loading = false;
+					vk.toast(err.msg || err.message || "注册失败", "none");
 				}
 			});
 		}
