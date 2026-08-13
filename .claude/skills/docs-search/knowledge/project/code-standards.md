@@ -2,6 +2,8 @@
 
 ## 命名规范
 
+### 代码命名
+
 | 类型 | 规范 | 示例 |
 |---|---|---|
 | 变量 | camelCase | `userInfo`、`createTime` |
@@ -9,7 +11,24 @@
 | 数据库表名 | kebab-case | `uni-id-users`、`order-detail` |
 | Vuex 模块 | `$` 前缀 | `$app`、`$user`、`$error` |
 | 组件 | 前缀区分 | `vk-data-*`（框架）、`custom-*`（自定义） |
-| 页面 | 路径规范 | `pages_plugs/system/{实体}/list.vue` |
+
+### 文件 / 目录命名
+
+| 类型 | 规范 | 示例 |
+|---|---|---|
+| 页面目录 | kebab-case | `pages/my-products/`、`pages/card-manage/` |
+| 通用组件目录 | kebab-case | `components/service-qrcode/`、`components/product-card/` |
+| 页面子组件文件 | PascalCase | `pages/my-products/components/ProductCard.vue` |
+| 组件入口文件 | index.vue | `components/service-qrcode/index.vue` |
+| 组件文件名 | PascalCase | `ProductCard.vue`、`ServiceQrcode.vue` |
+| 静态资源 | kebab-case | `static/service-qrcode.png` |
+| 云函数目录 | kebab-case | `uniCloud-alipay/cloudfunctions/` |
+| 配置文件 | camelCase 或 kebab-case | `app.config.js`、`pages.json` |
+
+**规则总结**：
+- 目录一律 kebab-case（`my-products`、`service-qrcode`）
+- `.vue` 文件一律 PascalCase（`ProductCard.vue`）
+- 模板中使用 kebab-case 引用（`<product-card>`、`<service-qrcode>`）
 
 ## 前端常用代码
 
