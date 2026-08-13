@@ -9,6 +9,13 @@ vk-unicloud-admin — Vue 2 + uni-app + uniCloud 管理后台框架。
 - 数据库：uniCloud，通过 `vk.baseDao` 操作
 - 环境变量：见 `.claude/rules/env.md`
 
+
+
+## 绝对禁忌
+
+- **无 npm scripts** — 只能通过 HBuilderX 运行/调试/部署
+- **uni-app ≠ Web** — 不用 vue-router / axios / DOM API / HTML 标签，详见各场景文档
+
 ---
 
 ## ⚠️ 不遵守必出错的规则

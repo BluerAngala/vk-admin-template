@@ -383,18 +383,27 @@ export default {
 
 <style lang="scss" scoped>
 .page-body {
-  padding: 20px;
-  background: #f5f7fa;
+  padding: 24px;
+  background: #f9fafb;
   min-height: 100vh;
+}
+
+// 搜索区域样式
+.search-section {
+  margin-bottom: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
 }
 
 // 标签页样式
 .tabs-wrapper {
-  margin-bottom: 20px;
-  background: #fff;
+  margin-bottom: 24px;
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  padding: 0px 20px 0 20px;
+  border: 1px solid #e5e7eb;
+  padding: 0 20px;
 
   ::v-deep .el-tabs__header {
     margin-bottom: 0;
@@ -402,7 +411,7 @@ export default {
 
   ::v-deep .el-tabs__nav-wrap::after {
     height: 1px;
-    background-color: #e4e7ed;
+    background-color: #e5e7eb;
   }
 
   ::v-deep .el-tabs__nav {
@@ -415,34 +424,36 @@ export default {
   }
 
   ::v-deep .el-tabs__item {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
-    padding: 0 30px;
-    height: 50px;
-    line-height: 50px;
+    padding: 0 24px;
+    height: 48px;
+    line-height: 48px;
+    color: #6b7280;
+    transition: color 0.15s ease;
 
     &.is-active {
-      color: #4facfe;
+      color: #111827;
       font-weight: 600;
     }
 
     &:hover {
-      color: #4facfe;
+      color: #111827;
     }
   }
 
   ::v-deep .el-tabs__active-bar {
-    background-color: #4facfe;
-    height: 3px;
+    background-color: #111827;
+    height: 2px;
   }
 
   .tab-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 
     i {
-      font-size: 18px;
+      font-size: 15px;
     }
 
     .tab-badge {
@@ -450,7 +461,7 @@ export default {
         font-size: 11px;
         height: 18px;
         line-height: 18px;
-        padding: 0 6px;
+        padding: 0 5px;
         border: none;
       }
     }
@@ -459,59 +470,60 @@ export default {
 
 // 产品区域
 .product-section {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .product-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
-  background: #fff;
+  padding: 64px 24px;
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
 
   i {
-    font-size: 80px;
-    color: #c0c4cc;
-    margin-bottom: 20px;
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 16px;
   }
 
   p {
-    margin: 10px 0;
-    font-size: 16px;
-    color: #606266;
+    margin: 6px 0;
+    font-size: 15px;
+    color: #374151;
   }
 
   .empty-tip {
-    font-size: 14px;
-    color: #909399;
+    font-size: 13px;
+    color: #9ca3af;
+    margin-top: 4px;
   }
 }
 
 .pagination-wrapper {
-  margin-top: 30px;
+  margin-top: 24px;
   display: flex;
   justify-content: center;
-  padding: 20px;
-  background: #fff;
+  padding: 16px;
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
 }
 
 // 版本日志样式
 .version-logs {
   .version-log-item {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f5f7fa;
+    margin-bottom: 12px;
+    padding: 16px;
+    background: #f9fafb;
     border-radius: 8px;
-    border-left: 3px solid #409eff;
+    border-left: 3px solid #111827;
 
     &:last-child {
       margin-bottom: 0;
@@ -521,13 +533,13 @@ export default {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       padding-bottom: 10px;
-      border-bottom: 1px solid #e4e7ed;
+      border-bottom: 1px solid #e5e7eb;
 
       .version-date {
-        font-size: 13px;
-        color: #909399;
+        font-size: 12px;
+        color: #9ca3af;
       }
     }
 
@@ -535,8 +547,8 @@ export default {
       pre {
         margin: 0;
         font-family: inherit;
-        font-size: 14px;
-        color: #606266;
+        font-size: 13px;
+        color: #6b7280;
         line-height: 1.6;
         white-space: pre-wrap;
         word-wrap: break-word;
@@ -544,9 +556,9 @@ export default {
     }
 
     .version-download {
-      margin-top: 10px;
+      margin-top: 12px;
       padding-top: 10px;
-      border-top: 1px solid #e4e7ed;
+      border-top: 1px solid #e5e7eb;
     }
   }
 }
