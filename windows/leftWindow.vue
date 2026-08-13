@@ -57,12 +57,23 @@
 		computed: {
 			menuGroups() {
 				let navMenu = vk.getVuex('$app.navMenu') || [];
+				let userInfo = vk.getVuex('$user.userInfo') || {};
+				let isAdmin = userInfo.role && userInfo.role.includes('admin');
+				let isDev = process.env.NODE_ENV !== 'production';
 				let groups = [];
 				let current = [];
 
 				for (let i = 0; i < navMenu.length; i++) {
 					let item = navMenu[i];
 					if (item.type === 'divider') {
+						// 非管理员不显示管理员专属分割线
+						if (item.menu_id === '__divider_admin__' && !isAdmin) {
+							continue;
+						}
+						// 非开发环境不显示开发环境专属分割线
+						if (item.menu_id === '__divider_dev__' && !isDev) {
+							continue;
+						}
 						if (current.length > 0) {
 							groups.push({ items: current });
 							current = [];

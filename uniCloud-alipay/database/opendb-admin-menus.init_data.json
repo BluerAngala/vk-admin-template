@@ -7,7 +7,7 @@
     "icon": "el-icon-s-tools",
     "url": "",
     "comment": "系统内置",
-    "sort": 100,
+    "sort": 1000,
     "enable": true
   },
   {
@@ -89,7 +89,7 @@
     "icon": "el-icon-s-tools",
     "menu_id": "system-uni",
     "name": "系统设置",
-    "sort": 110
+    "sort": 1050
   },
   {
     "_id": "system-uni-uni-id-files",
