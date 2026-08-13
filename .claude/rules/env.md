@@ -1,6 +1,6 @@
 # 环境变量
 
-- `当前项目绝对路径`：`/Users/bluer/Documents/HBuilderProjects/vk-admin-template`
+- `当前项目绝对路径`：`/Users/bluer/Documents/HBuilderProjects/law-products`
 - `uniCloud目录`：`${当前项目绝对路径}/uniCloud-alipay`
 - `router主函数名`：`router`
 - `文档根目录`: `vk-unicloud-docs/docs`
