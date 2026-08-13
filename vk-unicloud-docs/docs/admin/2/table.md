@@ -2417,3 +2417,208 @@ summaryMethod({ columns, data }) {
   return [means];
 }
 ```
+
+## 完整 CRUD 页面组装示例@full-crud-example
+
+以下是一个完整的管理后台 CRUD 页面，展示 `vk-data-table` + `vk-data-table-query` + 统计卡片 + 自定义按钮的配置驱动模式。
+
+### 页面结构
+
+```vue
+<template>
+  <view class="page-body">
+    <!-- 1. 统计卡片（可选） -->
+    <stats-cards :items="statsItems" :stats="stats" />
+
+    <!-- 2. 搜索区域 -->
+    <vk-data-table-query
+      v-model="queryForm1.formData"
+      :columns="queryForm1.columns"
+      @search="search"
+    >
+      <!-- 自定义插槽（可选） -->
+      <template v-slot:time_filter>
+        <!-- 自定义时间筛选 -->
+      </template>
+      <!-- 右侧按钮插槽（可选） -->
+      <template slot="right-btns">
+        <el-button type="success" size="small" icon="el-icon-plus">添加</el-button>
+      </template>
+    </vk-data-table-query>
+
+    <!-- 3. 数据表格 -->
+    <vk-data-table
+      ref="table1"
+      :action="table1.action"
+      :columns="table1.columns"
+      :query-form-param="queryForm1"
+      :right-btns="['delete']"
+      :custom-right-btns="table1.customRightBtns"
+      :row-no="true"
+      :pagination="true"
+      :selection="true"
+      @delete="deleteBtn"
+      @selection-change="selectionChange"
+    >
+      <!-- 自定义列插槽 -->
+      <template v-slot:status_text="{ row }">
+        <el-tag :type="row.status_color || 'info'" size="small">
+          {{ row.status_text || '未知' }}
+        </el-tag>
+      </template>
+    </vk-data-table>
+  </view>
+</template>
+```
+
+### 数据配置
+
+```js
+export default {
+  data() {
+    return {
+      // 统计数据
+      stats: { total: 0, unused: 0, used: 0, expired: 0 },
+      // 统计卡片配置
+      statsItems: [
+        { key: "total", label: "总数", color: "#303133" },
+        { key: "unused", label: "未使用", color: "#67C23A" },
+        { key: "used", label: "已使用", color: "#909399" },
+        { key: "expired", label: "已过期", color: "#F56C6C" },
+      ],
+      // 表格配置
+      table1: {
+        // 云函数接口地址（动态模式）
+        action: "admin/card/kh/getList",
+        // 列配置
+        columns: [
+          // 基础文本列
+          { key: "product_name", title: "产品名称", type: "text", width: 150 },
+          // 自定义插槽列（slot: true）
+          { key: "status_text", title: "状态", type: "text", width: 100, slot: true },
+          // 时间列
+          { key: "_add_time", title: "购买时间", type: "time", width: 180 },
+          // 带默认值的列
+          { key: "remark", title: "备注", type: "text", width: 200, defaultValue: "-" },
+        ],
+        // 自定义行操作按钮
+        customRightBtns: [
+          {
+            title: "编辑",
+            icon: "el-icon-edit",
+            type: "primary",
+            onClick: (item) => this.editBtn({ item }),
+            show: () => true,
+          },
+          {
+            title: "续费",
+            icon: "el-icon-refresh",
+            type: "warning",
+            onClick: (item) => this.renewBtn({ item }),
+            show: (item) => item.status === "active",
+          },
+        ],
+      },
+      // 搜索表单配置
+      queryForm1: {
+        formData: {},
+        columns: [
+          // 文本模糊搜索
+          { key: "card_code", type: "text", title: "卡密", placeholder: "请输入卡密", mode: "%%", col: { span: 5 } },
+          // 下拉精确搜索
+          { key: "status_text", type: "select", title: "状态", placeholder: "选择状态", mode: "=",
+            data: [
+              { value: "未激活", label: "未激活" },
+              { value: "使用中", label: "使用中" },
+              { value: "已过期", label: "已过期" },
+            ],
+            col: { span: 2 },
+          },
+          // 自定义插槽搜索
+          { key: "time_filter", type: "slot", title: "时间筛选", col: { span: 8 } },
+        ],
+      },
+    };
+  },
+};
+```
+
+### 配置驱动的数据流
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    JSON 配置                         │
+│                                                     │
+│  table1.action     → 云函数地址                      │
+│  table1.columns    → 表格列定义                      │
+│  queryForm1.columns → 搜索表单定义                   │
+│  statsItems        → 统计卡片定义                    │
+│  customRightBtns   → 行操作按钮定义                  │
+└────────────────────┬────────────────────────────────┘
+                     │ 传入组件 props
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│  vk-data-table / vk-data-table-query                │
+│                                                     │
+│  action + formData + columns → 自动调云函数          │
+│  columns 配置 → 自动渲染列（type/width/defaultValue）│
+│  slot: true   → 走模板插槽自定义渲染                 │
+│  mode         → 自动生成 where 查询条件              │
+│  customRightBtns → 渲染行操作按钮                    │
+└─────────────────────────────────────────────────────┘
+```
+
+### columns 配置速查
+
+| 场景 | 配置 |
+|---|---|
+| 普通文本 | `{ key: "name", title: "名称", type: "text", width: 150 }` |
+| 时间格式化 | `{ key: "_add_time", title: "时间", type: "time", width: 180 }` |
+| 空值占位 | `{ key: "remark", title: "备注", type: "text", defaultValue: "-" }` |
+| 自定义渲染 | `{ key: "status", title: "状态", type: "text", slot: true }` |
+| 最小宽度自适应 | `{ key: "content", title: "内容", type: "text", minWidth: 200 }` |
+
+### queryForm columns 配置速查
+
+| 场景 | 配置 |
+|---|---|
+| 模糊搜索 | `{ key: "name", type: "text", title: "名称", mode: "%%" }` |
+| 精确匹配 | `{ key: "status", type: "select", title: "状态", mode: "=", data: [...] }` |
+| 时间范围 | `{ key: "_add_time", type: "datetimerange", title: "时间", mode: "[]" }` |
+| 大于等于 | `{ key: "price", type: "money", title: "价格", mode: ">=" }` |
+| 自定义插槽 | `{ key: "my_filter", type: "slot", title: "自定义" }` |
+| 指定数据库字段 | `{ key: "mobile", type: "text", fieldName: "userInfo.mobile", mode: "=" }` |
+| 栅格宽度 | `{ key: "name", type: "text", col: { span: 5 } }` |
+
+### 字段顺序持久化
+
+支持用户自定义列顺序并持久化到 localStorage：
+
+```js
+methods: {
+  // 加载保存的字段顺序
+  loadColumnOrder() {
+    const savedOrder = uni.getStorageSync('table_columns_order');
+    if (savedOrder && Array.isArray(savedOrder) && savedOrder.length > 0) {
+      const currentColumns = this.table1.columns || [];
+      const columnMap = {};
+      currentColumns.forEach(col => { columnMap[col.key] = col; });
+
+      const orderedColumns = [];
+      savedOrder.forEach(key => {
+        if (columnMap[key]) orderedColumns.push(columnMap[key]);
+      });
+      // 添加未在保存顺序中的新字段
+      currentColumns.forEach(col => {
+        if (!savedOrder.includes(col.key)) orderedColumns.push(col);
+      });
+      this.table1.columns = orderedColumns;
+    }
+  },
+  // 保存字段顺序（在列拖拽排序回调中调用）
+  saveColumnOrder() {
+    const order = this.table1.columns.map(col => col.key);
+    uni.setStorageSync('table_columns_order', order);
+  },
+}
+```

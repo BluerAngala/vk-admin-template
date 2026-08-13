@@ -22,90 +22,143 @@
 
 ## 页面模板
 
-### 管理页面（使用 vk-data-table）
+### 管理页面（JSON 配置驱动）
+
+**核心思想：通过 JSON 配置渲染规则，组件自动处理数据请求和渲染。**
+
+> 完整 API 参考：`vk-unicloud-docs/docs/admin/2/table.md`
 
 ```vue
 <template>
   <view class="page-body">
-    <!-- 查询条件 -->
-    <vk-data-table-query v-model="queryForm" :columns="queryColumns" @query="onQuery" />
-    
-    <!-- 数据表格 -->
-    <vk-data-table 
-      :data="list" 
-      :columns="columns" 
-      :loading="loading"
-      @edit="onEdit"
-      @delete="onDelete"
-    />
-    
-    <!-- 新增按钮 -->
-    <view class="btn-add" @click="onAdd">
-      <text>新增</text>
-    </view>
+    <!-- 搜索区域 -->
+    <vk-data-table-query
+      v-model="queryForm1.formData"
+      :columns="queryForm1.columns"
+      @search="search"
+    >
+      <template slot="right-btns">
+        <el-button type="success" size="small" icon="el-icon-plus" @click="addBtn">添加</el-button>
+      </template>
+    </vk-data-table-query>
+
+    <!-- 数据表格（action 自动调云函数，columns 自动渲染列） -->
+    <vk-data-table
+      ref="table1"
+      :action="table1.action"
+      :columns="table1.columns"
+      :query-form-param="queryForm1"
+      :right-btns="['delete']"
+      :custom-right-btns="table1.customRightBtns"
+      :row-no="true"
+      :pagination="true"
+      :selection="true"
+      @delete="deleteBtn"
+    >
+      <!-- 自定义列渲染（slot: true 的列） -->
+      <template v-slot:status_text="{ row }">
+        <el-tag :type="row.status_color || 'info'" size="small">{{ row.status_text }}</el-tag>
+      </template>
+    </vk-data-table>
   </view>
 </template>
 
 <script>
+let that;
 let vk = uni.vk;
 
 export default {
   data() {
     return {
-      list: [],
-      loading: false,
-      queryForm: {},
-      queryColumns: [
-        { field: 'name', label: '名称', type: 'input' }
-      ],
-      columns: [
-        { field: 'name', label: '名称' },
-        { field: 'create_date', label: '创建时间' }
-      ]
-    }
+      table1: {
+        action: "your/api/getList",  // 云函数接口地址
+        columns: [
+          { key: "name", title: "名称", type: "text", width: 150 },
+          { key: "status_text", title: "状态", type: "text", width: 100, slot: true },
+          { key: "_add_time", title: "创建时间", type: "time", width: 180 },
+          { key: "remark", title: "备注", type: "text", width: 200, defaultValue: "-" },
+        ],
+        customRightBtns: [
+          {
+            title: "编辑",
+            icon: "el-icon-edit",
+            type: "primary",
+            onClick: (item) => that.editBtn({ item }),
+            show: () => true,
+          },
+        ],
+      },
+      queryForm1: {
+        formData: {},
+        columns: [
+          { key: "name", type: "text", title: "名称", placeholder: "请输入名称", mode: "%%", col: { span: 5 } },
+          { key: "status_text", type: "select", title: "状态", mode: "=", data: [
+            { value: "启用", label: "启用" },
+            { value: "禁用", label: "禁用" },
+          ], col: { span: 3 } },
+        ],
+      },
+    };
   },
   onLoad() {
-    this.getList();
+    that = this;
+    vk = that.vk;
   },
   methods: {
-    getList() {
-      this.loading = true;
-      vk.callFunction({
-        url: 'your/api/getList',
-        data: this.queryForm,
-        success: (data) => {
-          this.list = data.rows;
-        },
-        complete: () => {
-          this.loading = false;
-        }
-      });
+    search() {
+      that.$refs.table1.search();
     },
-    onQuery() {
-      this.getList();
-    },
-    onAdd() {
+    addBtn() {
       vk.navigateTo({ url: './form' });
     },
-    onEdit(row) {
-      vk.navigateTo({ url: './form?id=' + row._id });
+    editBtn({ item }) {
+      vk.navigateTo({ url: './form?id=' + item._id });
     },
-    onDelete(row) {
-      vk.confirm('确认删除？', () => {
-        vk.callFunction({
-          url: 'your/api/delete',
-          data: { _id: row._id },
-          success: () => {
-            vk.toast('删除成功');
-            this.getList();
-          }
-        });
+    deleteBtn({ item }) {
+      vk.callFunction({
+        url: 'your/api/delete',
+        data: { _id: item._id },
+        success: () => {
+          vk.toast('删除成功');
+          that.$refs.table1.search();
+        }
       });
     }
   }
 }
 </script>
 ```
+
+**columns 配置速查**
+
+| 场景 | 配置 |
+|---|---|
+| 普通文本 | `{ key: "name", title: "名称", type: "text", width: 150 }` |
+| 时间格式化 | `{ key: "_add_time", title: "时间", type: "time", width: 180 }` |
+| 空值占位 | `{ key: "remark", title: "备注", type: "text", defaultValue: "-" }` |
+| 自定义渲染 | `{ key: "status", title: "状态", type: "text", slot: true }` |
+
+**queryForm columns 配置速查**
+
+| 场景 | 配置 |
+|---|---|
+| 模糊搜索 | `{ key: "name", type: "text", title: "名称", mode: "%%" }` |
+| 精确匹配 | `{ key: "status", type: "select", title: "状态", mode: "=", data: [...] }` |
+| 时间范围 | `{ key: "_add_time", type: "datetimerange", title: "时间", mode: "[]" }` |
+| 栅格宽度 | `{ key: "name", type: "text", col: { span: 5 } }` |
+
+**mode 查询模式速查**
+
+| 值 | 说明 |
+|---|---|
+| `=` | 完全匹配 |
+| `%%` | 模糊匹配 |
+| `%*` | 以 xxx 开头 |
+| `*%` | 以 xxx 结尾 |
+| `>=` / `<=` / `>` / `<` | 比较 |
+| `[]` | 范围（时间范围等） |
+| `in` / `nin` | 在数组里 / 不在数组里 |
+| `custom` | 不自动参与 where 条件 |
 
 ### 表单页面
 
