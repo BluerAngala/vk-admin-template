@@ -253,6 +253,46 @@ import { ...mapActions } from 'vuex' // 不用,直接 vk.callFunction
 //    { "permission_id": "sys-<module>-get", "comment": "...", "url": "admin/<module>/sys/getList" }
 ```
 
+
+
+## 文档
+
+`vk-unicloud-docs/docs/` 是完整开发文档库（发布到 vkdoc.fsq.pub），涵盖：
+
+- `admin/` — 万能表格、万能表单、组件用法、自定义组件、常见问题
+- `client/` — vk.userCenter API、callFunction、页面拦截器、Vuex、上传、i18n
+- `client/uniCloud/cloudfunctions/` — 云函数、云对象、DAO、中间件、定时器、缓存、加密、WebSocket、SSE
+- `client/uniCloud/db/` — 数据库 API、schema、联表查询、事务
+- `client/uniCloud/config/` — uni-id、uni-pay、vk-unicloud 配置
+- `vk-uni-pay/` — 支付集成
+
+**查阅方式**：遇到具体组件/API/配置问题时，先读对应目录下的 md 文件再动手。不要凭记忆猜测框架 API。
+
+## 运行时
+
+- **IDE**：HBuilderX ^3.1.10（必须，无 CLI）
+- **Vue**：仅 Vue 2
+- **H5 路由**：hash 模式，base `/admin/`
+- **换行符**：LF（.gitattributes 强制）
+- **无测试框架**：`npm test` 是空桩
+- **H5 外部资源**（template.h5.html 加载）：Element UI CSS、Quill、TinyMCE、ExcelJS
+
+## RBAC
+
+角色 → 分配权限 + 菜单，用户 → 分配角色。
+- 权限：permission_id、url 模式、match_mode（full/wildcard/regex）
+- 菜单：menu_id、url、icon、parent_id（树形）
+- 运行时：`$hasRole()`、`$hasPermission()`
+- 页面级：checkTokenPages + checkPermissionPages（mode 2 = 除白名单外全部检查）
+
+## 安全规则
+
+- **必须用中文回答**
+- 大改动先说明方案，等用户确认后再执行
+- 前端表单校验 + 后端参数校验必须做
+
+
+
 ---
 
 **TL;DR 给 AI 协作者**:

@@ -1,0 +1,28 @@
+{
+  "name": "vk-unicloud-docs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "uniCloudDeploy-1": "cli hosting deploy --provider aliyun --space mp-0cfbb5f1-fa7e-4585-a530-dde5e1109066 --source D:/hbxwork/vk-unicloud-docs/dist/ --prefix /",
+    "uniCloudDeploy-2": "cli hosting deploy --provider aliyun --space mp-0cfbb5f1-fa7e-4585-a530-dde5e1109066 --source E:/VK/3_work-uni-app/vk-unicloud-docs/dist/ --prefix /",
+    "dev": "vuepress dev docs --temp .temp",
+    "build": "vuepress build docs",
+    "gen-links": "node scripts/generate-links.js",
+    "gen-txt": "node scripts/generate-txt.js"
+  },
+  "keywords": [],
+  "author": "VK",
+  "license": "ISC",
+  "devDependencies": {
+    "vuepress": "1.9.9"
+  },
+  "dependencies": {
+    "@vuepress/plugin-back-to-top": "1.9.9",
+    "@vuepress/plugin-medium-zoom": "1.9.9",
+    "vuepress-plugin-copyright": "^1.0.2",
+    "vuepress-plugin-juejin-style-copy": "^1.0.4",
+    "vuepress-plugin-medium-zoom": "^1.1.9",
+    "vuepress-plugin-right-anchor": "^0.5.5"
+  }
+}
