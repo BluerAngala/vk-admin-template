@@ -6,6 +6,7 @@ module.exports = {
    * data 请求参数 说明
    * @param {String} username 用户名，唯一
    * @param {String} password 密码
+   * @param {String} email QQ邮箱（必填，用于找回密码）
    * @param {String} captcha 图形验证码
    * @param {String} inviteCode 邀请码（可选）
    * res 返回参数说明
@@ -26,7 +27,7 @@ module.exports = {
     if (typeof data.password === "number")
       data.password = String(data.password).trim();
 
-    let { username, password, captcha, needPermission, inviteCode } = data;
+    let { username, password, email, captcha, needPermission, inviteCode } = data;
 
     // 验证图形验证码
     if (captcha) {
@@ -64,8 +65,37 @@ module.exports = {
           trigger: "blur",
         },
       ],
+      email: [
+        {
+          required: true,
+          validator: function(rule, value, data, callback) {
+            if (!value || value.trim() === '') {
+              return '请输入QQ邮箱';
+            }
+            // 验证QQ邮箱格式
+            const emailRegex = /^[1-9]\d{4,10}@qq\.com$/;
+            if (!emailRegex.test(value)) {
+              return '请输入正确的QQ邮箱格式';
+            }
+            return true;
+          },
+          message: "请输入正确的QQ邮箱格式",
+          trigger: ["blur", "change"],
+        },
+      ],
     };
     // 验证规则结束 -----------------------------------------------------------
+    
+    // 检查邮箱是否已注册
+    if (email) {
+      const emailExists = await vk.baseDao.count({
+        dbName: "uni-id-users",
+        whereJson: { email: email }
+      });
+      if (emailExists > 0) {
+        return { code: -1, msg: '该QQ邮箱已被注册' };
+      }
+    }
     // 开始进行验证
     let formRulesRes = vk.pubfn.formValidate({
       data: data,
@@ -89,6 +119,11 @@ module.exports = {
         allow_login_background: true, // 允许登录后台
         role: ["normal-user"], // 分配普通用户角色
       };
+      
+      // 保存邮箱
+      if (email) {
+        updateData.email = email;
+      }
       
       // 处理邀请码绑定
       let inviteBound = false; // 标记是否已通过事务绑定邀请关系

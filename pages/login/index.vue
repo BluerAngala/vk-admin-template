@@ -1,157 +1,217 @@
 <template>
-	<view class="app login">
-		<!-- 页面内容开始 -->
-		<view class="content">
-			<!-- 头部logo -->
-			<view class="header">
+	<view class="login-page">
+		<view class="login-card">
+			<!-- 头部 -->
+			<view class="card-header">
 				<image class="logo" :src="logoImage"></image>
-				<view class="site-title">
-					<view class="title-main">AI自动化商务定制化</view>
-					<view class="title-sub">智能管理，高效运营</view>
+				<view class="header-text">
+					<text class="title">AI自动化商务定制化</text>
+					<text class="subtitle">智能管理，高效运营</text>
 				</view>
 			</view>
 
-			<!-- 标签切换 -->
-			<view class="tab-bar">
-				<view class="tab-item" :class="{ active: activeTab === 'login' }" @click="switchTab('login')">登 录</view>
-				<view class="tab-item" :class="{ active: activeTab === 'register' }" @click="switchTab('register')">注 册</view>
-				<view class="tab-item" :class="{ active: activeTab === 'forgot' }" @click="switchTab('forgot')">忘记密码</view>
+			<!-- 标签栏 -->
+			<view class="tabs">
+				<view 
+					v-for="tab in tabs" 
+					:key="tab.key"
+					:class="['tab-btn', activeTab === tab.key ? 'active' : '']"
+					@click="switchTab(tab.key)"
+				>
+					<text class="tab-text">{{ tab.label }}</text>
+				</view>
 			</view>
 
-			<!-- 登录表单 -->
-			<form v-show="activeTab === 'login'" @submit="submitLoginForm">
-				<view class="form-view">
-					<view class="form-item form-border">
-						<text class="form-label">用户名<text class="required-star">*</text></text>
-						<input class="form-input" name="username" v-model="form1.username" type="text" placeholder="请输入用户名" placeholder-style="'color':'#8e8e8e'" required />
+			<!-- 表单区域 -->
+			<scroll-view class="form-area" scroll-y>
+				<!-- 注册表单 -->
+				<view v-if="activeTab === 'register'" class="form-content">
+					<view class="field">
+						<text class="label">用户名 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form3.username" 
+							type="text" 
+							placeholder="中文/英文/数字/下划线，3-32位" 
+						/>
 					</view>
 
-					<view class="form-item form-border">
-						<text class="form-label">密码<text class="required-star">*</text></text>
-						<input class="form-input" name="password" v-model="form1.password" type="password" placeholder="请输入密码" placeholder-style="'color':'#8e8e8e'" required />
+					<view class="field">
+						<text class="label">QQ邮箱 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form3.email" 
+							type="text" 
+							placeholder="用于找回密码" 
+						/>
 					</view>
 
-					<view class="captcha-container">
-						<!-- 图形验证码 -->
-						<uni-captcha scene="login" v-model="form1.captcha"></uni-captcha>
+					<view class="field">
+						<text class="label">密码 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form3.password" 
+							type="password" 
+							placeholder="字母开头，6-18位" 
+						/>
 					</view>
 
-					<view class="remember-box">
-						<label class="remember-label">
+					<view class="field">
+						<text class="label">确认密码 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form3.password2" 
+							type="password" 
+							placeholder="再次输入密码" 
+						/>
+					</view>
+
+					<view class="field">
+						<text class="label">验证码 <text class="req">*</text></text>
+						<view class="captcha-wrapper">
+							<uni-captcha scene="register" v-model="form3.captcha"></uni-captcha>
+						</view>
+					</view>
+
+					<view class="field" v-if="inviteCode || inviterInfo">
+						<text class="label">邀请人</text>
+						<view v-if="inviterInfo" class="inviter">
+							<text>{{ inviterInfo.nickname || inviterInfo.username || '用户' }}</text>
+							<text class="badge">已绑定</text>
+						</view>
+						<text v-else class="inviter-code">{{ inviteCode }}</text>
+					</view>
+
+					<view class="checkbox-field">
+						<checkbox-group @change="registerAgreementChange">
+							<checkbox value="agree" :checked="form3.agreement" color="#0891B2" />
+						</checkbox-group>
+						<text class="checkbox-text">同意</text>
+						<text class="link" @click="openAgreement">《用户协议》</text>
+					</view>
+
+					<view class="btn-primary" @click="submitRegisterForm">
+						<text class="btn-text">{{ registerLoading ? '注册中...' : '注 册' }}</text>
+					</view>
+				</view>
+
+				<!-- 登录表单 -->
+				<view v-if="activeTab === 'login'" class="form-content">
+					<view class="field">
+						<text class="label">用户名 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form1.username" 
+							type="text" 
+							placeholder="请输入用户名" 
+						/>
+					</view>
+
+					<view class="field">
+						<text class="label">密码 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form1.password" 
+							type="password" 
+							placeholder="请输入密码" 
+						/>
+					</view>
+
+					<view class="field">
+						<text class="label">验证码 <text class="req">*</text></text>
+						<view class="captcha-wrapper">
+							<uni-captcha scene="login" v-model="form1.captcha"></uni-captcha>
+						</view>
+					</view>
+
+					<view class="checkbox-row">
+						<view class="checkbox-item">
 							<checkbox-group @change="checkboxChange">
-								<checkbox class="remember-checkbox" value="true" :checked="checked" active-color="#737373" shape="circle"></checkbox>
-								<text>记住密码</text>
+								<checkbox value="remember" :checked="checked" color="#0891B2" />
 							</checkbox-group>
-						</label>
-						<view class="agreement-label">
-							<label>
-								<checkbox-group @change="agreementChange">
-									<checkbox class="agreement-checkbox" value="true" :checked="form1.agreement" active-color="#737373" shape="circle"></checkbox>
-									<text>同意</text>
-								</checkbox-group>
-							</label>
-							<text class="agreement-link" @click="openAgreement">《用户协议》</text>
+							<text class="checkbox-text">记住密码</text>
+						</view>
+						<view class="checkbox-item">
+							<checkbox-group @change="agreementChange">
+								<checkbox value="agree" :checked="form1.agreement" color="#0891B2" />
+							</checkbox-group>
+							<text class="checkbox-text">同意</text>
+							<text class="link" @click="openAgreement">《用户协议》</text>
 						</view>
 					</view>
 
+					<view class="btn-primary" @click="submitLoginForm">
+						<text class="btn-text">登 录</text>
+					</view>
 				</view>
-				<view class="login-btn">
-					<button class="btn success circle" hover-class="hover" shape="circle" form-type="submit" :plain="false" :hair-line="false" type="success">登 录</button>
-				</view>
-			</form>
 
-			<!-- 注册表单 -->
-			<form v-show="activeTab === 'register'" @submit="submitRegisterForm">
-				<view class="form-view">
-					<view class="form-item form-border">
-						<text class="form-label">用户名<text class="required-star">*</text></text>
-						<input class="form-input" v-model="form3.username" type="text" placeholder="支持中文/英文/数字/下划线，3-32位" placeholder-style="'color':'#8e8e8e'" />
+				<!-- 忘记密码表单 -->
+				<view v-if="activeTab === 'forgot'" class="form-content">
+					<view class="field">
+						<text class="label">QQ邮箱 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form2.email" 
+							type="text" 
+							placeholder="请输入注册时的QQ邮箱" 
+						/>
 					</view>
 
-					<view class="form-item form-border">
-						<text class="form-label">密码<text class="required-star">*</text></text>
-						<input class="form-input" v-model="form3.password" type="password" placeholder="请输入密码" placeholder-style="'color':'#8e8e8e'" />
-					</view>
-
-					<view class="form-item form-border">
-						<text class="form-label">确认密码<text class="required-star">*</text></text>
-						<input class="form-input" v-model="form3.password2" type="password" placeholder="请再次输入密码" placeholder-style="'color':'#8e8e8e'" />
-					</view>
-
-					<view class="captcha-container">
-						<!-- 图形验证码 -->
-						<uni-captcha scene="register" v-model="form3.captcha"></uni-captcha>
-					</view>
-
-					<!-- 邀请码 -->
-					<view class="form-item form-border" v-if="inviteCode || inviterInfo">
-						<text class="form-label">邀请人</text>
-						<view class="inviter-info" v-if="inviterInfo">
-							<text class="inviter-name">{{ inviterInfo.nickname || inviterInfo.username || '用户' }}</text>
-							<el-tag size="mini" type="success">已绑定</el-tag>
-						</view>
-						<text class="invite-code-text" v-else>{{ inviteCode }}</text>
-					</view>
-
-					<view class="remember-box">
-						<view class="agreement-label">
-							<label>
-								<checkbox-group @change="registerAgreementChange">
-									<checkbox class="agreement-checkbox" value="true" :checked="form3.agreement" active-color="#737373" shape="circle"></checkbox>
-									<text>同意</text>
-								</checkbox-group>
-							</label>
-							<text class="agreement-link" @click="openAgreement">《用户协议》</text>
+					<view class="field">
+						<text class="label">验证码 <text class="req">*</text></text>
+						<view class="code-row">
+							<input 
+								class="input code-input" 
+								v-model="form2.code" 
+								type="number" 
+								placeholder="邮箱验证码" 
+								maxlength="6" 
+							/>
+							<view 
+								:class="['btn-code', codeBtnDisabled ? 'disabled' : '']" 
+								@click="sendEmailCode"
+							>
+								<text class="btn-code-text">{{ codeBtnText }}</text>
+							</view>
 						</view>
 					</view>
-				</view>
-				<view class="login-btn">
-					<button class="btn success circle" hover-class="hover" shape="circle" form-type="submit" :plain="false" :hair-line="false" type="success" :loading="registerLoading">注 册</button>
-				</view>
-			</form>
 
-			<!-- 忘记密码表单 -->
-			<view v-show="activeTab === 'forgot'" class="form-view">
-				<view class="form-item form-border">
-					<text class="form-label">手机号<text class="required-star">*</text></text>
-					<input class="form-input" v-model="form2.mobile" type="number" placeholder="请输入注册手机号" placeholder-style="'color':'#8e8e8e'" maxlength="11" />
-				</view>
+					<view class="field">
+						<text class="label">新密码 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form2.password" 
+							type="password" 
+							placeholder="请输入新密码" 
+						/>
+					</view>
 
-				<view class="form-item form-border code-row">
-					<text class="form-label">验证码<text class="required-star">*</text></text>
-					<view class="code-input-wrap">
-						<input class="form-input code-input" v-model="form2.code" type="number" placeholder="请输入验证码" placeholder-style="'color':'#8e8e8e'" maxlength="6" />
-						<button class="code-btn" :disabled="codeBtnDisabled" @click="sendCode">{{ codeBtnText }}</button>
+					<view class="field">
+						<text class="label">确认密码 <text class="req">*</text></text>
+						<input 
+							class="input" 
+							v-model="form2.password2" 
+							type="password" 
+							placeholder="再次输入新密码" 
+						/>
+					</view>
+
+					<view class="btn-primary" @click="resetPassword">
+						<text class="btn-text">重置密码</text>
 					</view>
 				</view>
+			</scroll-view>
 
-				<view class="form-item form-border">
-					<text class="form-label">新密码<text class="required-star">*</text></text>
-					<input class="form-input" v-model="form2.password" type="password" placeholder="请输入新密码" placeholder-style="'color':'#8e8e8e'" />
-				</view>
-
-				<view class="form-item form-border">
-					<text class="form-label">确认密码<text class="required-star">*</text></text>
-					<input class="form-input" v-model="form2.password2" type="password" placeholder="请再次输入新密码" placeholder-style="'color':'#8e8e8e'" />
-				</view>
-
-				<view class="login-btn">
-					<button class="btn success circle" hover-class="hover" shape="circle" @click="resetPassword" :plain="false" :hair-line="false" type="success">重置密码</button>
-				</view>
-			</view>
-
-			<!-- 底部信息 -->
+			<!-- 底部链接 -->
 			<view class="footer">
-				<text v-if="activeTab === 'login'" @click="switchTab('register')">没有账号？</text>
-				<text v-if="activeTab === 'login'" class="link-text" @click="switchTab('register')">立即注册</text>
-				<text v-if="activeTab === 'register'" @click="switchTab('login')">已有账号？</text>
-				<text v-if="activeTab === 'register'" class="link-text" @click="switchTab('login')">立即登录</text>
-				<text v-if="activeTab === 'forgot'" @click="switchTab('login')">想起密码了？</text>
-				<text v-if="activeTab === 'forgot'" class="link-text" @click="switchTab('login')">返回登录</text>
+				<text v-if="activeTab === 'login'" class="footer-text">没有账号？</text>
+				<text v-if="activeTab === 'login'" class="footer-link" @click="switchTab('register')">立即注册</text>
+				<text v-if="activeTab === 'register'" class="footer-text">已有账号？</text>
+				<text v-if="activeTab === 'register'" class="footer-link" @click="switchTab('login')">立即登录</text>
+				<text v-if="activeTab === 'forgot'" class="footer-text">想起密码了？</text>
+				<text v-if="activeTab === 'forgot'" class="footer-link" @click="switchTab('login')">返回登录</text>
 			</view>
 		</view>
-
-		<!-- 页面内容结束 -->
 	</view>
 </template>
 
@@ -160,8 +220,12 @@ let vk = uni.vk;
 export default {
 	data() {
 		return {
-			activeTab: 'login', // 当前激活的标签：login | register | forgot
-			// 登录表单
+			activeTab: 'login',
+			tabs: [
+				{ key: 'register', label: '注册' },
+				{ key: 'login', label: '登录' },
+				{ key: 'forgot', label: '忘记密码' }
+			],
 			form1: {
 				username: "",
 				password: "",
@@ -169,50 +233,36 @@ export default {
 				agreement: true,
 				needPermission: true
 			},
-			checked: false, // 是否记住密码
-			// 忘记密码表单
+			checked: false,
 			form2: {
-				mobile: "",
+				email: "",
 				code: "",
 				password: "",
 				password2: ""
 			},
-			// 注册表单
 			form3: {
 				username: "",
+				email: "",
 				password: "",
 				password2: "",
 				captcha: "",
 				agreement: true
 			},
-			// 验证码按钮
 			codeBtnText: "获取验证码",
 			codeBtnDisabled: false,
 			codeCountdown: 0,
-			scrollTop: 0,
 			logoImage: "/static/logo.png",
-			// 注册相关
 			registerLoading: false,
 			inviteCode: "",
 			inviterInfo: null,
 		};
 	},
-	onPageScroll(e) {
-		this.scrollTop = e.scrollTop;
-	},
-	// 监听 - 页面每次【加载时】执行(如：前进)
 	onLoad(options = {}) {
 		vk = this.vk;
 		this.options = options;
 		this.init(options);
 	},
-	// 监听 - 页面【首次渲染完成时】执行
-	onReady() {
-
-	},
-	// 监听 - 页面每次【显示时】执行(如：前进和返回)
 	onShow() {
-		// 如果还没有邀请码，再次尝试解析
 		if (!this.inviteCode) {
 			const inviteCode = this.parseInviteCode({});
 			if (inviteCode) {
@@ -220,29 +270,19 @@ export default {
 			}
 		}
 	},
-	// 监听 - 页面每次【隐藏时】执行(如：返回)
-	onHide() {
-
-	},
-	// 监听 - 页面下拉刷新
 	onPullDownRefresh() {
 		setTimeout(() => {
 			uni.stopPullDownRefresh();
 		}, 1000);
 	},
-	// 函数
 	methods: {
-		// 切换标签
 		switchTab(tab) {
 			this.activeTab = tab;
 		},
-		// 统一解析邀请码的方法
 		parseInviteCode(options = {}) {
-			// 优先从options中获取
 			if (options.inviteCode) {
 				return options.inviteCode;
 			}
-			// H5环境下，从URL hash中解析邀请码
 			// #ifdef H5
 			if (window.location && window.location.hash) {
 				const hash = window.location.hash;
@@ -254,14 +294,12 @@ export default {
 			// #endif
 			return null;
 		},
-		// 设置邀请码并加载邀请人信息
 		setInviteCode(code) {
 			if (code && code !== this.inviteCode) {
 				this.inviteCode = code;
 				this.loadInviterInfo(code);
 			}
 		},
-		// 加载邀请人信息
 		loadInviterInfo(code) {
 			let that = this;
 			vk.callFunction({
@@ -277,10 +315,8 @@ export default {
 				}
 			});
 		},
-		// 页面数据初始化函数
 		init(options = {}) {
 			let that = this;
-			console.log("init: ", options);
 			let { login } = vk.getVuex("$user");
 			if (login) {
 				if (login.username) that.form1.username = login.username;
@@ -289,19 +325,16 @@ export default {
 					that.checked = true;
 				}
 			}
-			// 处理邀请码
 			const inviteCode = options.inviteCode || this.parseInviteCode(options);
 			if (inviteCode) {
 				this.setInviteCode(inviteCode);
 			}
-			// 处理 tab 参数，支持从邀请链接直接跳转到注册标签
 			if (options.tab === 'register') {
 				this.activeTab = 'register';
 			}
 			if (!getApp().isAllowLoginBackground()) {
 				return false;
 			}
-			// 如果本地token有效，则再从云端查询一次token是否有效，如果都有效，则直接视为登录成功
 			if (vk.checkToken()) {
 				vk.userCenter.checkToken({
 					loading: true,
@@ -311,58 +344,33 @@ export default {
 				});
 			}
 		},
-		// 记住密码 checkbox 改变事件
 		checkboxChange(e) {
-			let that = this;
 			let value = e.detail.value || [];
-			if (value.length > 0 && value[0]) {
-				that.checked = true;
-			} else {
-				that.checked = false;
-			}
+			this.checked = value.length > 0;
 		},
-		// 用户协议 checkbox 改变事件（登录）
 		agreementChange(e) {
-			let that = this;
 			let value = e.detail.value || [];
-			if (value.length > 0 && value[0]) {
-				that.form1.agreement = true;
-			} else {
-				that.form1.agreement = false;
-			}
+			this.form1.agreement = value.length > 0;
 		},
-		// 用户协议 checkbox 改变事件（注册）
 		registerAgreementChange(e) {
-			let that = this;
 			let value = e.detail.value || [];
-			if (value.length > 0 && value[0]) {
-				that.form3.agreement = true;
-			} else {
-				that.form3.agreement = false;
-			}
+			this.form3.agreement = value.length > 0;
 		},
-		// 登录表单提交
-		submitLoginForm(e) {
+		submitLoginForm() {
 			let that = this;
-			// 阻止默认表单提交行为
-			if (e) e.preventDefault();
 			
-			// 验证必填项
 			if (!that.form1.agreement) {
-				vk.toast('请阅读并同意用户协议', 'none');
+				vk.toast('请同意用户协议', 'none');
 				return;
 			}
-			
 			if (!that.form1.username || that.form1.username.trim() === '') {
 				vk.toast('请输入用户名', 'none');
 				return;
 			}
-			
 			if (!that.form1.password || that.form1.password.trim() === '') {
 				vk.toast('请输入密码', 'none');
 				return;
 			}
-			
 			if (!that.form1.captcha || that.form1.captcha.trim() === '') {
 				vk.toast('请输入验证码', 'none');
 				return;
@@ -376,11 +384,9 @@ export default {
 						return false;
 					}
 					if (that.checked) {
-						// 账号密码保存本地缓存
 						vk.setVuex("$user.login.username", that.form1.username);
 						vk.setVuex("$user.login.password", that.form1.password);
 					} else {
-						// 删除本地缓存
 						vk.setVuex("$user.login.username", "");
 						vk.setVuex("$user.login.password", "");
 					}
@@ -388,15 +394,11 @@ export default {
 				}
 			});
 		},
-		// 登陆成功
 		loginSuccess(data = {}) {
 			let { userInfo = {} } = data;
-			// 先清空下菜单缓存
 			vk.setVuex("$app.inited", false);
 			vk.setVuex("$app.navMenu", []);
-			// 再执行init函数
 			getApp().init();
-			// 检查是否有指定跳转的页面
 			if (this.options.uniIdRedirectUrl) {
 				let uniIdRedirectUrl = decodeURIComponent(this.options.uniIdRedirectUrl);
 				if (uniIdRedirectUrl) {
@@ -404,7 +406,6 @@ export default {
 					return;
 				}
 			}
-			// 最后跳转到首页或页面返回
 			let pages = getCurrentPages();
 			if (
 				pages.length >= 2 &&
@@ -412,58 +413,62 @@ export default {
 				pages[pages.length - 2].route &&
 				pages[pages.length - 2].route.indexOf("login/") == -1
 			) {
-				// 如果上一个页面不是login目录下的，则调上一个页面
 				vk.reLaunch("/" + pages[pages.length - 2].route);
 			} else {
-				// 否则进入首页
 				vk.navigateToHome();
 			}
 		},
-		// 注册表单提交
-		submitRegisterForm(e) {
+		submitRegisterForm() {
 			let that = this;
-			if (e) e.preventDefault();
 
 			if (that.registerLoading) {
 				return false;
 			}
-			const { agreement, username, password, password2, captcha } = that.form3;
+			const { agreement, username, email, password, password2, captcha } = that.form3;
 			if (!agreement) {
-				vk.toast("请阅读并同意用户协议", "none");
+				vk.toast("请同意用户协议", "none");
 				return;
 			}
 			if (!username || username.trim() === "") {
 				vk.toast("请输入用户名", "none");
 				return;
 			}
-			// 验证用户名：支持中文、英文、数字和下划线，长度3-32
 			const usernameRegex = /^[\u4e00-\u9fa5a-zA-Z0-9_]{3,32}$/;
 			if (!usernameRegex.test(username)) {
-				vk.toast("用户名长度在3~32之间，可以包含中文、英文、数字和下划线", "none");
+				vk.toast("用户名格式不正确", "none");
+				return;
+			}
+			if (!email || email.trim() === "") {
+				vk.toast("请输入QQ邮箱", "none");
+				return;
+			}
+			const emailRegex = /^[1-9]\d{4,10}@qq\.com$/;
+			if (!emailRegex.test(email)) {
+				vk.toast("请输入正确的QQ邮箱", "none");
 				return;
 			}
 			if (!vk.pubfn.test(password, "pwd")) {
-				vk.toast("密码以字母开头，长度在6~18之间，只能包含字母、数字和下划线", "none");
+				vk.toast("密码以字母开头，6-18位", "none");
 				return;
 			}
 			if (!vk.pubfn.test(password2, "pwd")) {
-				vk.toast("密码以字母开头，长度在6~18之间，只能包含字母、数字和下划线", "none");
+				vk.toast("密码以字母开头，6-18位", "none");
 				return;
 			}
 			if (password != password2) {
-				vk.toast("两次密码必须相同!", "none");
+				vk.toast("两次密码不一致", "none");
 				return;
 			}
 			if (!captcha || captcha.trim() === "") {
-				vk.toast("请输入图形验证码", "none");
+				vk.toast("请输入验证码", "none");
 				return;
 			}
 			that.registerLoading = true;
 
-			// 调用注册接口
 			vk.userCenter.register({
 				data: {
 					username: username,
+					email: email,
 					password: password,
 					captcha: captcha,
 					inviteCode: that.inviteCode || undefined,
@@ -471,7 +476,6 @@ export default {
 				success: (data) => {
 					that.registerLoading = false;
 					vk.toast("注册成功", "success");
-					// 注册成功后自动填入用户名到登录表单
 					that.form1.username = username;
 					that.form1.password = "";
 					that.form1.captcha = "";
@@ -482,25 +486,25 @@ export default {
 				}
 			});
 		},
-		// 发送短信验证码
-		sendCode() {
+		sendEmailCode() {
 			let that = this;
-			let { mobile } = that.form2;
-			if (!mobile || mobile.trim() === '') {
-				vk.toast('请输入手机号', 'none');
+			let { email } = that.form2;
+			if (!email || email.trim() === '') {
+				vk.toast('请输入QQ邮箱', 'none');
 				return;
 			}
-			if (!/^1\d{10}$/.test(mobile)) {
-				vk.toast('手机号格式不正确', 'none');
+			const emailRegex = /^[1-9]\d{4,10}@qq\.com$/;
+			if (!emailRegex.test(email)) {
+				vk.toast('请输入正确的QQ邮箱', 'none');
 				return;
 			}
-			// 发送验证码
 			vk.callFunction({
-				url: 'user/pub/sendSmsCode',
+				url: 'user/pub/sendEmailCode',
 				data: {
-					mobile: mobile,
+					email: email,
 					type: 'reset-pwd',
-					checkUserExist: 'exists' // 必须已注册的手机号
+					serviceType: 'qq',
+					checkUserExist: 'exists'
 				},
 				loading: true,
 				success: (res) => {
@@ -509,12 +513,11 @@ export default {
 				}
 			});
 		},
-		// 开始倒计时
 		startCountdown() {
 			let that = this;
 			that.codeBtnDisabled = true;
 			that.codeCountdown = 60;
-			that.codeBtnText = `${that.codeCountdown}s后重新获取`;
+			that.codeBtnText = that.codeCountdown + 's';
 			let timer = setInterval(() => {
 				that.codeCountdown--;
 				if (that.codeCountdown <= 0) {
@@ -522,21 +525,20 @@ export default {
 					that.codeBtnDisabled = false;
 					that.codeBtnText = '获取验证码';
 				} else {
-					that.codeBtnText = `${that.codeCountdown}s后重新获取`;
+					that.codeBtnText = that.codeCountdown + 's';
 				}
 			}, 1000);
 		},
-		// 重置密码
 		resetPassword() {
 			let that = this;
-			let { mobile, code, password, password2 } = that.form2;
-			// 表单验证
-			if (!mobile || mobile.trim() === '') {
-				vk.toast('请输入手机号', 'none');
+			let { email, code, password, password2 } = that.form2;
+			if (!email || email.trim() === '') {
+				vk.toast('请输入QQ邮箱', 'none');
 				return;
 			}
-			if (!/^1\d{10}$/.test(mobile)) {
-				vk.toast('手机号格式不正确', 'none');
+			const emailRegex = /^[1-9]\d{4,10}@qq\.com$/;
+			if (!emailRegex.test(email)) {
+				vk.toast('请输入正确的QQ邮箱', 'none');
 				return;
 			}
 			if (!code || code.trim() === '') {
@@ -552,23 +554,21 @@ export default {
 				return;
 			}
 			if (password !== password2) {
-				vk.toast('两次输入的密码不一致', 'none');
+				vk.toast('两次密码不一致', 'none');
 				return;
 			}
-			// 调用重置密码接口
 			vk.callFunction({
-				url: 'user/pub/resetPasswordByMobile',
+				url: 'user/pub/resetPasswordByEmail',
 				data: {
-					mobile: mobile,
+					email: email,
 					code: code,
 					password: password
 				},
 				loading: true,
 				success: (res) => {
-					vk.toast('密码重置成功，请登录', 'success');
-					// 清空表单并切换到登录标签
+					vk.toast('密码重置成功', 'success');
 					that.form2 = {
-						mobile: "",
+						email: "",
 						code: "",
 						password: "",
 						password2: ""
@@ -577,7 +577,6 @@ export default {
 				}
 			});
 		},
-		// 打开用户协议
 		openAgreement() {
 			const url = 'https://bluerangala.feishu.cn/docx/IXoedH1Oso18iDxxjWsck9SBnfb?from=from_copylink';
 			// #ifdef H5
@@ -594,259 +593,321 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import url("@/common/css/main.css");
-
-.login {
+.login-page {
 	display: flex;
-	justify-content: center;
 	align-items: center;
-	min-height: 100vh;
-	
-	.content {
-		width: 100%;
-		max-width: 30%;
-		margin: 0 auto;
-	}
+	justify-content: center;
+	height: 100vh;
+	background-color: #F1F5F9;
+	padding: 20px;
+	box-sizing: border-box;
 }
 
-/* 移动端适配 */
-@media screen and (max-width: 768px) {
-	.login .content {
-		max-width: 100%;
-		padding: 0 20rpx;
-	}
+.login-card {
+	width: 100%;
+	max-width: 560px;
+	background-color: #FFFFFF;
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	max-height: 100%;
 }
 
-/* 标签栏样式 */
-.tab-bar {
+/* Header */
+.card-header {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
+	padding: 24px;
+	border-bottom-width: 1px;
+	border-bottom-color: #E2E8F0;
+	border-bottom-style: solid;
+}
+
+.logo {
+	width: 48px;
+	height: 48px;
+	border-radius: 8px;
+	margin-right: 16px;
+}
+
+.header-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #0F172A;
+	line-height: 24px;
+}
+
+.subtitle {
+	font-size: 13px;
+	color: #64748B;
+	margin-top: 2px;
+}
+
+/* Tabs */
+.tabs {
+	display: flex;
+	flex-direction: row;
+	background-color: #F8FAFC;
+	padding: 12px 24px 0;
+}
+
+.tab-btn {
+	flex: 1;
+	padding: 10px 16px;
+	text-align: center;
+	background-color: transparent;
+	border-radius: 8px 8px 0 0;
+}
+
+.tab-btn.active {
+	background-color: #FFFFFF;
+	position: relative;
+}
+
+.tab-btn.active::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 20%;
+	right: 20%;
+	height: 2px;
+	background-color: #0891B2;
+}
+
+.tab-text {
+	font-size: 14px;
+	color: #64748B;
+}
+
+.tab-btn.active .tab-text {
+	color: #0891B2;
+	font-weight: 600;
+}
+
+/* Form Area */
+.form-area {
+	height: calc(100vh - 240px);
+	min-height: 300px;
+	max-height: 420px;
+	overflow: hidden;
+}
+
+.form-content {
+	padding: 20px 24px;
+}
+
+/* Fields */
+.field {
+	margin-bottom: 16px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.label {
+	font-size: 14px;
+	font-weight: 500;
+	color: #334155;
+	width: 70px;
+	text-align: right;
+	margin-right: 12px;
+	flex-shrink: 0;
+}
+
+.req {
+	color: #EF4444;
+}
+
+.input {
+	flex: 1;
+	height: 40px;
+	padding-left: 12px;
+	padding-right: 12px;
+	font-size: 14px;
+	color: #0F172A;
+	background-color: #F8FAFC;
+	border-width: 1px;
+	border-color: #E2E8F0;
+	border-style: solid;
+	border-radius: 8px;
+}
+
+.input:focus {
+	border-color: #0891B2;
+	background-color: #FFFFFF;
+}
+
+/* Captcha */
+.captcha-wrapper {
+	flex: 1;
+}
+
+/* Code Row */
+.code-row {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.code-input {
+	flex: 1;
+	margin-right: 8px;
+}
+
+.btn-code {
+	width: 110px;
+	height: 40px;
+	background-color: #0891B2;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
 	justify-content: center;
-	margin: 30rpx 0 40rpx;
-	border-bottom: 2rpx solid #e5e5e5;
-	
-	.tab-item {
-		padding: 20rpx 30rpx;
-		font-size: 30rpx;
-		color: #666;
-		cursor: pointer;
-		position: relative;
-		
-		&.active {
-			color: #007AFF;
-			font-weight: 600;
-			
-			&::after {
-				content: '';
-				position: absolute;
-				bottom: -2rpx;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 60%;
-				height: 4rpx;
-				background-color: #007AFF;
-				border-radius: 2rpx;
-			}
-		}
-	}
 }
 
-/* 验证码容器样式 */
-.captcha-container {
-	padding: 0 70rpx;
-	margin: 26rpx 0;
-	
-	/* 调整验证码大小 */
-	::v-deep .captcha-img-box,
-	::v-deep .captcha-img,
-	::v-deep .loding {
-		height: 60px !important;
-		width: 150px !important;
-	}
-	
-	::v-deep .captcha {
-		height: 60px !important;
-		line-height: 60px !important;
-		font-size: 16px !important;
-	}
+.btn-code.disabled {
+	background-color: #CBD5E1;
 }
 
-/* 表单标签样式 */
-.form-label {
-	font-size: 28rpx;
-	color: #333333;
-	margin-right: 20rpx;
-	white-space: nowrap;
+.btn-code-text {
+	font-size: 13px;
+	color: #FFFFFF;
 }
 
-/* 必填星号样式 */
-.required-star {
-	color: #ff0000;
-	margin-left: 4rpx;
+/* Checkbox */
+.checkbox-field {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	margin-bottom: 16px;
+	padding: 0 20px;
+	box-sizing: border-box;
 }
 
-/* 记住密码和协议样式 */
-.remember-box {
-	padding: 0 70rpx;
-	margin: 20rpx 0;
-	font-size: 28rpx;
-	color: rgba(0, 0, 0, 0.7);
+.checkbox-row {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
 	align-items: center;
-	
-	.remember-label,
-	.agreement-label {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-	}
-	
-	.agreement-label {
-		flex-shrink: 0;
-	}
-	
-	.remember-checkbox,
-	.agreement-checkbox {
-		transform: scale(0.7);
-	}
-	
-	.agreement-link {
-		color: #007AFF;
-		text-decoration: none;
-		margin-left: 5rpx;
-	}
+	width: 100%;
+	margin-bottom: 16px;
+	padding: 0 20px;
+	box-sizing: border-box;
 }
 
-/* 头部样式 */
-.header {
+.checkbox-item {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
+}
+
+.checkbox-text {
+	font-size: 13px;
+	color: #64748B;
+	margin-left: 4px;
+}
+
+.link {
+	font-size: 13px;
+	color: #0891B2;
+	font-weight: 500;
+}
+
+/* Inviter */
+.inviter {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.badge {
+	font-size: 11px;
+	color: #059669;
+	background-color: #ECFDF5;
+	padding: 2px 8px;
+	border-radius: 4px;
+	margin-left: 8px;
+}
+
+.inviter-code {
+	flex: 1;
+	font-size: 14px;
+	color: #64748B;
+}
+
+/* Button */
+.btn-primary {
+	width: 100%;
+	height: 44px;
+	background-color: #0891B2;
+	border-radius: 8px;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 20px;
-	margin-bottom: 40rpx;
-	
-	.logo {
-		width: 80px;
-		height: 80px;
-		flex-shrink: 0;
-	}
-	
-	.site-title {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		align-items: flex-start;
-		
-		.title-main {
-			font-size: 24px;
-			font-weight: 600;
-			color: #2c3e50;
-			line-height: 1.2;
-			white-space: nowrap;
-		}
-		
-		.title-sub {
-			font-size: 14px;
-			color: #8492a6;
-			line-height: 1.2;
-			white-space: nowrap;
-		}
-	}
 }
 
-/* 移动端头部适配 */
-@media screen and (max-width: 768px) {
-	.header {
-		gap: 15px;
-		
-		.logo {
-			width: 60px;
-			height: 60px;
-		}
-		
-		.site-title {
-			.title-main {
-				font-size: 20px;
-			}
-			
-			.title-sub {
-				font-size: 12px;
-			}
-		}
-	}
+.btn-text {
+	font-size: 15px;
+	font-weight: 600;
+	color: #FFFFFF;
 }
 
-/* 验证码行样式 */
-.code-row {
-	.code-input-wrap {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		flex: 1;
-		gap: 10rpx;
-		
-		.code-input {
-			flex: 1;
-		}
-		
-		.code-btn {
-			flex-shrink: 0;
-			font-size: 24rpx;
-			padding: 10rpx 20rpx;
-			background-color: #007AFF;
-			color: #fff;
-			border-radius: 8rpx;
-			white-space: nowrap;
-			
-			&[disabled] {
-				background-color: #ccc;
-			}
-		}
-	}
-}
-
-/* 邀请人信息样式 */
-.inviter-info {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 10rpx;
-	
-	.inviter-name {
-		font-size: 28rpx;
-		color: #333;
-	}
-}
-
-.invite-code-text {
-	font-size: 28rpx;
-	color: #666;
-}
-
-/* 底部链接样式 */
+/* Footer */
 .footer {
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
-	font-size: 28rpx;
-	margin-top: 80rpx;
-	color: rgba(0, 0, 0, 0.7);
-	text-align: center;
-	height: 40rpx;
-	line-height: 40rpx;
-	
-	.link-text {
-		color: #007AFF;
-		margin-left: 10rpx;
-		cursor: pointer;
+	padding: 16px 24px;
+	background-color: #F8FAFC;
+	border-top-width: 1px;
+	border-top-color: #E2E8F0;
+	border-top-style: solid;
+}
+
+.footer-text {
+	font-size: 13px;
+	color: #64748B;
+}
+
+.footer-link {
+	font-size: 13px;
+	font-weight: 500;
+	color: #0891B2;
+	margin-left: 4px;
+}
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+	.login-page {
+		padding: 12px;
 	}
 	
-	text {
-		cursor: pointer;
+	.card-header {
+		padding: 20px;
+	}
+	
+	.tabs {
+		padding: 10px 20px 0;
+	}
+	
+	.form-content {
+		padding: 16px 20px;
+	}
+	
+	.footer {
+		padding: 14px 20px;
 	}
 }
 </style>
