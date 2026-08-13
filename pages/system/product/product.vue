@@ -1512,10 +1512,10 @@ export default {
     loadMachineStats() {
       // 非管理员也需要加载，因为价格显示需要用到
       vk.callFunction({
-        url: "admin/card/kh/getMachineStats",
+        url: "admin/card/kh/getStats",
         success: (data) => {
-          that.machineStats = data.data || {
-            total_machines: 0
+          that.machineStats = {
+            total_machines: data.total_machines || 0
           };
         },
         fail: (err) => {

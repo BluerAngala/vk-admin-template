@@ -142,10 +142,10 @@ export default {
 		// 加载机器统计
 		loadMachineStats() {
 			vk.callFunction({
-				url: "admin/card/kh/getMachineStats",
+				url: "admin/card/kh/getStats",
 				success: (data) => {
-					that.machineStats = data.data || {
-						total_machines: 0
+					that.machineStats = {
+						total_machines: data.total_machines || 0
 					};
 				},
 				fail: (err) => {

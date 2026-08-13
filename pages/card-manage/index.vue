@@ -120,7 +120,7 @@
       :show.sync="purchaseDialogVisible"
       :product-list="productList"
       :user-points="userPoints"
-      :machine-stats="machineStats"
+      :machine-stats="stats"
       @success="onPurchaseSuccess"
       @go-to-points-shop="goToPointsShop"
       @update-query-options="onUpdateQueryOptions"
@@ -248,10 +248,7 @@ export default {
         available_points: 0,
         total_points: 0,
       },
-      // 用户绑定机器统计
-      machineStats: {
-        total_machines: 0,
-      },
+      // 用户绑定机器统计（已合并到 stats.total_machines）
       table1: {
         action: "admin/card/kh/getList",
         columns: [
@@ -401,7 +398,6 @@ export default {
       
       that.loadStats();
       that.loadUserPoints();
-      that.loadMachineStats();
     },
     // 加载字段顺序
     loadColumnOrder() {
@@ -485,21 +481,6 @@ export default {
             total_points: 0,
           };
         },
-      });
-    },
-    // 加载机器统计
-    loadMachineStats() {
-      vk.callFunction({
-        url: "admin/card/kh/getMachineStats",
-        success: (data) => {
-          that.machineStats = data.data || {
-            total_machines: 0
-          };
-        },
-        fail: (err) => {
-          console.error('加载机器统计失败：', err);
-          that.machineStats = { total_machines: 0 };
-        }
       });
     },
     // 跳转到积分商城
