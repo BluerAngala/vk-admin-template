@@ -139,8 +139,8 @@ export default {
   data() {
     return {
       activeTab: 'unpurchased', // 当前激活的标签页
-      productList: [], // 所有产品列表
-      allProducts: [], // 原始完整产品列表（用于搜索）
+      productList: [], // 过滤后的产品列表
+      // allProducts -> computed（从 store 响应式读取）
       unpurchasedCurrentPage: 1, // 未购买产品当前页码
       purchasedCurrentPage: 1, // 已购买产品当前页码
       pageSize: 9, // 每页显示数量
@@ -181,6 +181,7 @@ export default {
     };
   },
   computed: {
+    allProducts() { return this.$store.state.$user.productList || []; },
     // 未购买的产品列表
     unpurchasedProducts() {
       const products = this.productList.filter(product => {
@@ -251,7 +252,6 @@ export default {
       that.loading = true;
       try {
         await that.$store.dispatch('$user/loadProductList');
-        that.allProducts = that.$store.state.$user.productList || [];
         that.productList = [...that.allProducts];
       } catch (err) {
         vk.toast(err.msg || "加载失败");

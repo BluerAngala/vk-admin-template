@@ -943,7 +943,7 @@ export default {
       isAdmin: false, // 是否是管理员
       productTypeData: productTypeData, // 产品类型选项
       userList: [], // 用户列表
-      machineStats: { total_machines: 0 }, // 用户绑定机器统计
+      // machineStats -> computed
       // 单元格编辑状态
       editingCell: {
         rowId: null,
@@ -1231,6 +1231,9 @@ export default {
       },
     };
   },
+  computed: {
+    machineStats() { return this.$store.state.$user.machineStats; },
+  },
   onLoad(options = {}) {
     that = this;
     vk = that.vk;
@@ -1244,12 +1247,11 @@ export default {
   },
   methods: {
     // 初始化
-    async init() {
+    init() {
       originalForms["form1"] = vk.pubfn.copyObject(that.form1);
       that.checkAdminRole();
       that.loadUserList();
-      await that.$store.dispatch('$user/loadMachineStats');
-      that.machineStats = that.$store.state.$user.machineStats;
+      that.$store.dispatch('$user/loadMachineStats');
     },
     // 检查是否是管理员
     checkAdminRole() {
@@ -1509,10 +1511,9 @@ export default {
 
       return "";
     },
-    // 加载机器统计
-    async loadMachineStats() {
-      await that.$store.dispatch('$user/loadMachineStats');
-      that.machineStats = that.$store.state.$user.machineStats;
+    // 加载机器统计（从 store 响应式读取）
+    loadMachineStats() {
+      that.$store.dispatch('$user/loadMachineStats', { force: true });
     },
     // 计算基础价格
     calculateBasePrice(row) {

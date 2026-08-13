@@ -243,11 +243,8 @@ export default {
       ],
       // 产品列表
       productList: [],
-      // 用户积分信息
-      userPoints: {
-        available_points: 0,
-        total_points: 0,
-      },
+      // 用户积分信息（从 store 响应式读取）
+      // userPoints -> computed
       // 用户绑定机器统计（已合并到 stats.total_machines）
       table1: {
         action: "admin/card/kh/getList",
@@ -382,7 +379,9 @@ export default {
       },
     };
   },
-  computed: {},
+  computed: {
+    userPoints() { return this.$store.state.$user.pointsInfo; },
+  },
   onLoad(options = {}) {
     that = this;
     vk = that.vk;
@@ -394,8 +393,7 @@ export default {
       await that.loadProducts();
       that.loadColumnOrder();
       that.loadStats();
-      await that.$store.dispatch('$user/loadPointsInfo');
-      that.userPoints = that.$store.state.$user.pointsInfo;
+      that.$store.dispatch('$user/loadPointsInfo');
     },
     // 加载字段顺序
     loadColumnOrder() {
@@ -469,10 +467,9 @@ export default {
         success: (data) => (that.stats = data),
       });
     },
-    // 加载用户积分
-    async loadUserPoints() {
-      await that.$store.dispatch('$user/loadPointsInfo');
-      that.userPoints = that.$store.state.$user.pointsInfo;
+    // 加载用户积分（从 store 响应式读取）
+    loadUserPoints() {
+      that.$store.dispatch('$user/loadPointsInfo', { force: true });
     },
     // 跳转到积分商城
     goToPointsShop() {
@@ -495,9 +492,7 @@ export default {
     refresh() {
       that.$refs.table1.refresh();
       that.loadStats();
-      that.$store.dispatch('$user/loadPointsInfo', { force: true }).then(() => {
-        that.userPoints = that.$store.state.$user.pointsInfo;
-      });
+      that.$store.dispatch('$user/loadPointsInfo', { force: true });
     },
     // 显示积分不足提示（提取公共逻辑）
     showInsufficientPointsAlert(neededPoints) {

@@ -193,7 +193,7 @@ let vk = uni.vk;
 export default {
 	data() {
 		return {
-			userPoints: 0,
+			// userPoints -> computed
 			selectedPackage: null,
 			pollingTimer: null,
 			pollingStartTime: null,
@@ -229,6 +229,9 @@ export default {
 			]
 		};
 	},
+	computed: {
+		userPoints() { return this.$store.state.$user.pointsInfo.available_points || 0; },
+	},
 	onLoad() {
 		vk = this.vk;
 		this.init();
@@ -243,8 +246,7 @@ export default {
 	onUnload() { this.clearPollingTimer(); },
 	methods: {
 		async init() {
-			await this.$store.dispatch('$user/loadPointsInfo');
-			this.userPoints = this.$store.state.$user.pointsInfo.available_points || 0;
+			this.$store.dispatch('$user/loadPointsInfo');
 			this.loadPayConfig();
 		},
 
@@ -266,13 +268,12 @@ export default {
 			this.payConfig = payConfig;
 		},
 
-		// 加载用户积分（从 Vuex 缓存）
-		async loadUserPoints() {
-			await this.$store.dispatch('$user/loadPointsInfo', { force: true });
-			this.userPoints = this.$store.state.$user.pointsInfo.available_points || 0;
+		// 加载用户积分（从 store 响应式读取）
+		loadUserPoints() {
+			this.$store.dispatch('$user/loadPointsInfo', { force: true });
 		},
-		async refreshPoints() {
-			await this.loadUserPoints();
+		refreshPoints() {
+			this.loadUserPoints();
 			vk.toast("刷新成功");
 		},
 

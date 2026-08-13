@@ -1,6 +1,11 @@
 // 定义不需要永久存储的目录，即下次APP启动数据会自动清空，值为在modules目录下的文件名
 let notSaveStateKeys = ['$error'];
 
+// 定义模块内不需要持久化的嵌套字段（格式：{ 模块名: [字段1, 字段2] }）
+let notSaveStateNestedKeys = {
+	'$user': ['pointsInfo', 'machineStats', 'productList']
+};
+
 /* 以下代码请勿改动，除非你知道改动带来的效果 */
 
 const modulesTemp = {};
@@ -52,7 +57,14 @@ const saveLifeData = function(key, value) {
 		let tmp = uni.getStorageSync('lifeData');
 		// 第一次打开APP，不存在lifeData变量，故放一个{}空对象
 		tmp = tmp ? tmp : {};
-		tmp[key] = value;
+		// 过滤掉不需要持久化的嵌套字段
+		let saveValue = value;
+		const excludeKeys = notSaveStateNestedKeys[key];
+		if (excludeKeys && excludeKeys.length > 0 && typeof value === 'object' && value !== null) {
+			saveValue = Object.assign({}, value);
+			excludeKeys.forEach(k => { delete saveValue[k]; });
+		}
+		tmp[key] = saveValue;
 		// 执行这一步后，所有需要存储的变量，都挂载在本地的lifeData对象中
 		uni.setStorageSync('lifeData', tmp);
 	}
