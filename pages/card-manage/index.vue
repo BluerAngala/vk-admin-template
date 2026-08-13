@@ -16,7 +16,7 @@
             v-model="queryForm1.formData.time_field"
             placeholder="选择时间类型"
             clearable
-            style="width: 140px;"
+            style="width: 120px;"
           >
             <el-option label="购买时间" value="_add_time"></el-option>
             <el-option label="开始使用时间" value="activate_time"></el-option>
@@ -30,7 +30,7 @@
             end-placeholder="结束日期"
             value-format="timestamp"
             clearable
-            style="width: 380px;"
+            style="width: 300px;"
           >
           </el-date-picker>
         </div>

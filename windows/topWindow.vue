@@ -210,19 +210,15 @@ export default {
 			this.checkMenuCollapse();
 		},
 		checkMenuCollapse(){
-			let leftCollapse = vk.getVuex('$app.leftCollapse');
-			if (!leftCollapse) {
-				// 打开
+				let leftCollapse = vk.getVuex('$app.leftCollapse');
+				// 从 leftWindow 的 CSS 变量读取宽度，避免硬编码
+				let sidebarStyle = getComputedStyle(document.querySelector('.sidebar'));
+				let openWidth = sidebarStyle.getPropertyValue('--sidebar-width').trim() || '250px';
+				let collapseWidth = sidebarStyle.getPropertyValue('--sidebar-collapse-width').trim() || '64px';
 				uni.setLeftWindowStyle({
-					width: '280px',
-				});
-			} else {
-				// 折叠
-				uni.setLeftWindowStyle({
-					width: '64px',
+					width: leftCollapse ? collapseWidth : openWidth,
 				});
 			}
-		}
 	},
 	// 计算属性
 	computed: {

@@ -98,10 +98,15 @@
 </script>
 
 <style lang="scss">
+	$sidebar-width: 250px;
+	$sidebar-collapse-width: 64px;
+
 	.sidebar {
 		position: fixed;
 		top: var(--window-top);
-		width: 280px;
+		width: $sidebar-width;
+		--sidebar-width: #{$sidebar-width};
+		--sidebar-collapse-width: #{$sidebar-collapse-width};
 		height: calc(100vh - (var(--window-top)) + 50px);
 		box-sizing: border-box;
 		box-shadow: var(--boxShadow, 2px 0 0px rgba(0,21,4,0.2));
@@ -112,7 +117,7 @@
 		z-index: 998;
 	}
 	.sidebar.collapse{
-		width: 64px;
+		width: $sidebar-collapse-width;
 	}
 	.title {
 		margin-left: 5px;
