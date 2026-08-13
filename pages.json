@@ -1,5 +1,13 @@
 {
   "pages": [
+    {
+      "path": "pages/landing/index",
+      "style": {
+        "topWindow": false,
+        "leftWindow": false,
+        "navigationStyle": "custom"
+      }
+    },
     { "path": "pages/index/index" },
     {
       "path": "pages/login/index",

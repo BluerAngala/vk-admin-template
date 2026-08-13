@@ -70,7 +70,7 @@
     "h5" : {
         "template" : "template.h5.html",
         "router" : {
-            "mode" : "hash",
+            "mode" : "history",
             "base" : "/admin/"
         },
         "devServer" : {
@@ -83,7 +83,12 @@
                 }
             }
         },
-        "title" : "开发测试卡密系统"
+        "title" : "开发测试卡密系统",
+        "optimization" : {
+            "treeShaking" : {
+                "enable" : true
+            }
+        }
     },
     "vueVersion" : "2",
     "networkTimeout" : {
