@@ -58,14 +58,6 @@
       }
     },
     {
-      "path": "pages/register/register",
-      "style": {
-        "topWindow": false,
-        "leftWindow": false,
-        "navigationBarTitleText": "注册"
-      }
-    },
-    {
       "path": "pages/webview/webview",
       "style": {
         "topWindow": false,

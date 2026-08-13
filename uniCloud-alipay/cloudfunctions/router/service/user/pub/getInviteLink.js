@@ -69,8 +69,8 @@ module.exports = {
     const nextTier = calculateRebateTier.getNextTier(totalConsumePoints, tiers);
     
     // 生成邀请链接（只返回 hash 路由部分，前端根据当前入口拼接完整 URL）
-    // 形如：#/pages/register/register?inviteCode=XXXXXX
-    const inviteLink = `#/pages/register/register?inviteCode=${inviteCode}`;
+    // 形如：#/pages/login/index?inviteCode=XXXXXX&tab=register
+    const inviteLink = `#/pages/login/index?inviteCode=${inviteCode}&tab=register`;
     
     res.data = {
       inviteCode,

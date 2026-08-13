@@ -204,7 +204,7 @@ export default {
         basePath = origin + '/admin/index.html';
       }
       
-      // 后端返回的 inviteLink 形如：#/pages/register/register?inviteCode=XXXX
+      // 后端返回的 inviteLink 形如：#/pages/login/index?inviteCode=XXXX&tab=register
       // 拼接完整URL并返回
       return basePath + this.inviteInfo.inviteLink;
       // #endif
