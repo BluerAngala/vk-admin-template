@@ -4,7 +4,7 @@
       <div class="stats-item">
         <div class="stats-label">{{ item.label }}</div>
         <div class="stats-value" :style="{ color: item.color }">
-          {{ stats[item.key] }}
+          {{ stats[item.key] }}{{ item.suffix || '' }}
         </div>
       </div>
     </el-card>
