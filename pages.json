@@ -80,6 +80,18 @@
       }
     },
     {
+      "path": "pages/system/product-category/product-category",
+      "style": {
+        "navigationBarTitleText": "产品分类"
+      }
+    },
+    {
+      "path": "pages/system/product-display/product-display",
+      "style": {
+        "navigationBarTitleText": "展示配置"
+      }
+    },
+    {
       "path": "pages/system/statistics/statistics",
       "style": {
         "navigationBarTitleText": "购买统计"

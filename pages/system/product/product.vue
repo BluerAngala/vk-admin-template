@@ -924,13 +924,6 @@ let that;
 let vk = uni.vk;
 let originalForms = {};
 
-// 产品类型数据
-const productTypeData = [
-  { value: "software", label: "软件" },
-  { value: "plugin", label: "浏览器插件" },
-  { value: "normal", label: "通用" },
-];
-
 // 状态数据
 const statusData = [
   { value: 0, label: "下架" },
@@ -941,7 +934,7 @@ export default {
   data() {
     return {
       isAdmin: false, // 是否是管理员
-      productTypeData: productTypeData, // 产品类型选项
+      productTypeData: [], // 产品类型选项（从数据库加载）
       userList: [], // 用户列表
       // machineStats -> computed
       // 单元格编辑状态
@@ -1064,7 +1057,7 @@ export default {
             type: "select",
             title: "产品类型",
             placeholder: "选择类型",
-            data: productTypeData,
+            data: [], // 从数据库动态加载
             col: { span: 4 },
             mode: "=",
           },
@@ -1250,8 +1243,34 @@ export default {
     init() {
       originalForms["form1"] = vk.pubfn.copyObject(that.form1);
       that.checkAdminRole();
+      that.loadProductCategories();
       that.loadUserList();
       that.$store.dispatch('$user/loadMachineStats');
+    },
+    // 加载产品分类数据
+    loadProductCategories() {
+      vk.callFunction({
+        url: 'admin/product-category/sys/getAll',
+        data: {},
+        success: (res) => {
+          if (res.data && Array.isArray(res.data)) {
+            const categories = res.data.map(item => ({
+              value: item.value,
+              label: item.label
+            }));
+            // 更新表单中的产品类型选项
+            that.productTypeData = categories;
+            // 更新搜索表单中的产品类型选项
+            const categoryColumn = that.queryForm1.columns.find(col => col.key === 'product_type');
+            if (categoryColumn) {
+              categoryColumn.data = categories;
+            }
+          }
+        },
+        fail: (err) => {
+          console.error('加载产品分类失败：', err);
+        }
+      });
     },
     // 检查是否是管理员
     checkAdminRole() {

@@ -191,6 +191,17 @@
     "parent_id": "system-uni"
   },
   {
+    "_id": "system-uni-product-center",
+    "_add_time": 1596416400000,
+    "enable": true,
+    "icon": "el-icon-s-goods",
+    "menu_id": "system-uni-product-center",
+    "name": "产品中心",
+    "comment": "产品分类、内容、展示、统计统一管理",
+    "sort": -1,
+    "parent_id": "system-uni"
+  },
+  {
     "_id": "system-uni-product-manage",
     "sort": 0,
     "url": "/pages/system/product/product",
@@ -200,19 +211,43 @@
     "menu_id": "system-uni-product-manage",
     "name": "产品管理",
     "comment": "管理产品信息和定价",
-    "parent_id": "system-uni"
+    "parent_id": "system-uni-product-center"
+  },
+  {
+    "_id": "system-uni-product-category",
+    "sort": 1,
+    "url": "/pages/system/product-category/product-category",
+    "_add_time": 1596416400000,
+    "enable": true,
+    "icon": "el-icon-collection",
+    "menu_id": "system-uni-product-category",
+    "name": "产品分类",
+    "comment": "管理产品类型分类",
+    "parent_id": "system-uni-product-center"
+  },
+  {
+    "_id": "system-uni-product-display",
+    "sort": 2,
+    "url": "/pages/system/product-display/product-display",
+    "_add_time": 1596416400000,
+    "enable": true,
+    "icon": "el-icon-picture-outline",
+    "menu_id": "system-uni-product-display",
+    "name": "展示配置",
+    "comment": "配置前端落地页展示内容",
+    "parent_id": "system-uni-product-center"
   },
   {
     "_id": "system-uni-statistics",
-    "sort": 1,
+    "sort": 3,
     "url": "/pages/system/statistics/statistics",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-data-analysis",
     "menu_id": "system-uni-statistics",
-    "name": "产品管理统计",
-    "comment": "查看用户积分统计信息",
-    "parent_id": "system-uni"
+    "name": "销售统计",
+    "comment": "查看用户积分和购买统计",
+    "parent_id": "system-uni-product-center"
   },
   {
     "_id": "system-uni-announcement",

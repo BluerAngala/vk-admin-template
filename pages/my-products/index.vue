@@ -161,11 +161,7 @@ export default {
             type: "select",
             title: "产品类型",
             placeholder: "选择类型",
-            data: [
-              { value: "software", label: "软件" },
-              { value: "plugin", label: "浏览器插件" },
-              { value: "normal", label: "通用" },
-            ],
+            data: [], // 从数据库动态加载
             col: { span: 5 },
           },
         ],
@@ -244,9 +240,32 @@ export default {
   onLoad(options = {}) {
     that = this;
     vk = that.vk;
+    that.loadProductCategories();
     that.loadProducts();
   },
   methods: {
+    // 加载产品分类数据
+    loadProductCategories() {
+      vk.callFunction({
+        url: 'admin/product-category/sys/getAll',
+        data: {},
+        success: (res) => {
+          if (res.data && Array.isArray(res.data)) {
+            // 更新 queryForm1 中的 product_type data
+            const categoryColumn = that.queryForm1.columns.find(col => col.key === 'product_type');
+            if (categoryColumn) {
+              categoryColumn.data = res.data.map(item => ({
+                value: item.value,
+                label: item.label
+              }));
+            }
+          }
+        },
+        fail: (err) => {
+          console.error('加载产品分类失败：', err);
+        }
+      });
+    },
     // 加载产品列表
     async loadProducts() {
       that.loading = true;

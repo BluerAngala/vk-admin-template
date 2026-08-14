@@ -1,0 +1,37 @@
+[
+  {
+    "value": "software",
+    "label": "软件",
+    "icon": "el-icon-monitor",
+    "sort": 10,
+    "enable": true
+  },
+  {
+    "value": "plugin",
+    "label": "插件",
+    "icon": "el-icon-connection",
+    "sort": 20,
+    "enable": true
+  },
+  {
+    "value": "web",
+    "label": "网页",
+    "icon": "el-icon-platform-eleme",
+    "sort": 30,
+    "enable": true
+  },
+  {
+    "value": "miniapp",
+    "label": "小程序",
+    "icon": "el-icon-chat-dot-round",
+    "sort": 40,
+    "enable": true
+  },
+  {
+    "value": "other",
+    "label": "其他",
+    "icon": "el-icon-more-outline",
+    "sort": 50,
+    "enable": true
+  }
+]
