@@ -24,14 +24,14 @@
         <text class="hero__title">AI自动化<br/>商务定制化平台</text>
         <text class="hero__sub">智能管理，高效运营<br/>一站式产品授权、卡密管理、积分商城</text>
         <view class="hero__actions">
-          <text class="btn btn--primary" @click="goRegister">立即开始</text>
-          <text class="btn btn--ghost" @click="goLogin">登录后台</text>
+          <text class="btn btn--primary" @click="scrollToFeatures">了解更多</text>
+          <text class="btn btn--ghost" @click="goLogin">{{ isLoggedIn ? '进入后台' : '登录后台' }}</text>
         </view>
       </view>
     </view>
 
     <!-- 特性 -->
-    <view class="features">
+    <view class="features" id="features">
       <view class="features__inner">
         <text class="section__title">核心功能</text>
         <text class="section__subtitle">为您的业务提供全方位智能化管理</text>
@@ -67,7 +67,7 @@
       <view class="cta__inner">
         <text class="cta__title">准备好开始了吗？</text>
         <text class="cta__sub">几分钟即可完成注册，立即体验智能化管理</text>
-        <text class="btn btn--primary btn--lg" @click="goRegister">免费注册</text>
+        <text class="btn btn--primary btn--lg" @click="isLoggedIn ? goAdmin() : goLogin()">{{ isLoggedIn ? '进入后台' : '免费注册' }}</text>
       </view>
     </view>
 
@@ -118,13 +118,21 @@
     },
     methods: {
       goLogin() {
-        vk.navigateTo({ url: '/pages/login/index' });
-      },
-      goRegister() {
-        vk.navigateTo({ url: '/pages/login/index' });
+        if (this.isLoggedIn) {
+          vk.reLaunch({ url: '/pages/index/index' });
+        } else {
+          vk.navigateTo({ url: '/pages/login/index' });
+        }
       },
       goAdmin() {
         vk.reLaunch({ url: '/pages/index/index' });
+      },
+      scrollToFeatures() {
+        uni.createSelectorQuery().select('#features').boundingClientRect(rect => {
+          if (rect) {
+            uni.pageScrollTo({ scrollTop: rect.top - 50, duration: 300 });
+          }
+        }).exec();
       },
     },
   };
