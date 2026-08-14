@@ -1,1 +1,0 @@
-db.collection('uni-id-users').limit(10).get()

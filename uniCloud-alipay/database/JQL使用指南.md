@@ -1,8 +1,8 @@
 # JQL 数据库操作指南
 
-> 本文档用于 HBuilderX 中快速查阅 JQL 语法，方便数据迁移和调试。
+> 本文档仅供查阅 JQL 语法参考。
 >
-> **重要**：数据迁移优先使用云函数（见 `cloudfunctions/migration/`），JQL 仅用于临时调试。
+> **重要**：本地开发中临时修改数据库，应在 `cloudfunctions/` 下新建测试云函数，禁止使用 JQL 文件或执行器手动操作。
 >
 > 官方文档：
 > - [JQL 语法总览](https://doc.dcloud.net.cn/uniCloud/jql.html)
@@ -274,42 +274,27 @@ db.collection("vk-points-log")
 
 ---
 
-## 八、迁移脚本编写规范
+## 八、数据迁移规范
 
-**推荐方式**：在 `cloudfunctions/migration/` 云函数中编写迁移逻辑，通过 `callFunction({ name: 'migration', data: { action: 'all' } })` 调用，支持幂等和错误处理。
+开发调试中需要临时修改数据库时，**在 `cloudfunctions/` 下新建测试云函数实现**，禁止使用 JQL 文件或在 JQL 执行器手动跑命令。
 
-**JQL 方式**（仅用于临时调试）：
+### 为什么不用 JQL？
 
-编写数据迁移脚本时，遵循以下规范：
+- JQL 执行后无记录，过后就忘了，无法复现
+- 多人协作时执行顺序不可控，容易产生脏数据
+- 云函数可复用、可追溯、支持幂等设计
 
-1. **文件位置**：必须放在 `database/` 根目录，HBuilderX 不识别子目录中的 `.jql` 文件
-2. **文件命名**：数字前缀 + 中文描述 + `.jql` 后缀，如 `1-新增产品中心父菜单.jql`
-2. **逐条执行**：每条语句独立可执行，不依赖执行顺序时用空行分隔
-3. **加注释**：每条语句上方写明用途
-4. **幂等性**：尽量使用 `where + update` 而非 `add`，避免重复执行产生脏数据
-5. **先查后改**：不确定数据状态时，先用 `get()` 确认再执行修改
+### 临时修改规范
 
-### 示例：安全的迁移脚本
+1. 在 `uniCloud-alipay/cloudfunctions/mytest/` 下新建子目录（如 `fix-menu-sort/`）
+2. 编写修改逻辑，支持幂等（已存在则跳过或更新）
+3. 通过 HBuilderX 右键上传并运行
+4. 验证完成后可保留或删除
 
-```javascript
-// 检查是否已存在（避免重复插入）
-// 如果返回 0 条，再执行 add
+### 正式迁移脚本
 
-// 1. 新增菜单（如已存在会报主键冲突，可忽略）
-db.collection("opendb-admin-menus").add({
-  "menu_id": "system-uni-product-center",
-  "name": "产品中心",
-  "icon": "el-icon-s-goods",
-  "sort": -1,
-  "parent_id": "system-uni",
-  "enable": true
-});
+正式的数据迁移（如初始化菜单、表结构变更）写在 `cloudfunctions/migration/index.js` 中：
 
-// 2. 更新已有记录（where + update，可重复执行）
-db.collection("opendb-admin-menus")
-  .where({ _id: "system-uni-product-manage" })
-  .update({
-    "parent_id": "system-uni-product-center",
-    "sort": 0
-  });
-```
+1. 按功能拆分函数，如 `migrateMenu()`、`migrateCategories()`
+2. 通过 `action` 参数分组执行，支持 `all`、`menu`、`categories` 等
+3. 每步操作记录到 `log` 数组，返回给调用方

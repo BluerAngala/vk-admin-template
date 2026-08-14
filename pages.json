@@ -86,9 +86,9 @@
       }
     },
     {
-      "path": "pages/system/product-display/product-display",
+      "path": "pages/system/landing-manage/landing-manage",
       "style": {
-        "navigationBarTitleText": "展示配置"
+        "navigationBarTitleText": "落地页管理"
       }
     },
     {

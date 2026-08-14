@@ -12,6 +12,24 @@
 
 ## 代码质量要求
 
+### VK 框架响应结构
+
+`vk.callFunction` 配合 `vk.baseDao.getTableData` 返回的数据**直接在顶层**，不在 `res.data` 里：
+
+```javascript
+// ❌ 错误
+success: (res) => {
+  if (res.data && res.data.rows) { ... }
+}
+
+// ✅ 正确（兼容两种结构）
+success: (res) => {
+  const rows = res.rows || (res.data && res.data.rows) || [];
+}
+```
+
+VK 内部日志显示的结构即为 `success` 回调收到的结构：`{ code, rows, total, pagination, ... }`
+
 ### 安全性
 
 - 表单验证（前端）

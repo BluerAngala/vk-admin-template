@@ -126,9 +126,8 @@ export default {
         url: 'admin/product-category/sys/getList',
         data: {},
         success: (res) => {
-          if (res.data && res.data.rows) {
-            this.categoryList = res.data.rows;
-          }
+          const rows = res.rows || (res.data && res.data.rows) || [];
+          this.categoryList = rows;
         },
         fail: (err) => {
           vk.toast(err.msg || '加载失败', 'none');
@@ -142,20 +141,19 @@ export default {
     // 加载预设分类
     loadPresets() {
       this.presetLoading = true;
-      uniCloud.callFunction({
-        name: 'migration',
-        data: { action: 'categories' },
+      vk.callFunction({
+        url: 'admin/product-category/sys/initPresets',
+        data: {},
         success: (res) => {
-          if (res.result && res.result.code === 0) {
-            const logs = res.result.data.categories || [];
-            vk.toast(logs.join('\n'), 'none');
+          if (res.code === 0) {
+            vk.toast(res.msg || '加载成功');
             this.loadCategories();
           } else {
-            vk.toast(res.result.msg || '加载失败', 'none');
+            vk.toast(res.msg || '加载失败', 'none');
           }
         },
         fail: (err) => {
-          vk.toast(err.message || '加载失败', 'none');
+          vk.toast(err.msg || '加载失败', 'none');
         },
         complete: () => {
           this.presetLoading = false;

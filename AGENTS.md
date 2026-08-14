@@ -107,6 +107,16 @@ uni-app ≠ Vue Web，必须用 uni-app 组件：
 
 **重要经验**：`pages.json` 第一个页面 = 框架首页，不受 `checkTokenPages` 控制。落地页不能放第一位。
 
+### 8. 本地临时修改数据库用云函数，不用 JQL
+
+开发调试中需要临时修改数据库时，禁止在 JQL 执行器里手动跑命令或写 `.jql` 文件。统一放在 `uniCloud-alipay/cloudfunctions/mytest/` 下新建云函数，方便复现和复用。
+
+```text
+✅ cloudfunctions/mytest/fix-menu-sort/index.js  ← 可复现、可复用
+❌ database/fix-menu.jql                          ← 不可追溯、不可重复执行
+❌ 直接告诉用户在 JQL 执行器跑命令                 ← 过后就忘了，无法复现
+```
+
 ---
 
 ## 代码规范

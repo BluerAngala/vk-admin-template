@@ -23,6 +23,8 @@
 │  │   ├── service/             ← 业务逻辑             │
 │  │   ├── dao/                 ← 数据库操作           │
 │  │   └── middleware/          ← 中间件               │
+│  ├── cloudfunctions/migration/ ← 正式数据迁移        │
+│  ├── cloudfunctions/mytest/    ← 临时测试脚本        │
 │  └── database/                 ← 项目自有表 schema   │
 ├── uni_modules/                                        │
 │  ├── vk-unicloud/             ← 核心框架             │
@@ -98,6 +100,8 @@ leftWindow.vue 渲染
 | `uni_modules/uni-id/` | 用户认证模块 |
 | `uni_modules/uni-config-center/` | 云端集中配置 |
 | `uniCloud-alipay/cloudfunctions/router/` | **全部后端代码** |
+| `uniCloud-alipay/cloudfunctions/migration/` | 正式数据迁移脚本 |
+| `uniCloud-alipay/cloudfunctions/mytest/` | 临时测试云函数（数据库修复、调试等） |
 | `store/modules/` | Vuex：`$app`（菜单/UI）、`$user`（认证）、`$error`（日志） |
 | `components/` | 全局组件（require.context 自动注册） |
 | `common/theme/` | 主题预设：white、black、blackWhite |

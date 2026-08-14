@@ -89,13 +89,13 @@
     "menu_id": "__divider_admin__",
     "type": "divider",
     "name": "管理员专属",
-    "sort": 850
+    "sort": 999
   },
   {
     "menu_id": "__divider_dev__",
     "type": "divider",
     "name": "开发环境专属",
-    "sort": 1050
+    "sort": 8000
   },
   {
     "menu_id": "vk-in",

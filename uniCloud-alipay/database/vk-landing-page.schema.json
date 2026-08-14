@@ -1,0 +1,35 @@
+{
+  "bsonType": "object",
+  "required": ["sections"],
+  "permission": {
+    "create": false,
+    "read": true,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "sections": {
+      "bsonType": "array",
+      "title": "页面区块",
+      "description": "有序的区块数组，每个区块包含 type、enable、data",
+      "permission": {
+        "read": true
+      }
+    },
+    "_add_time": {
+      "description": "创建时间",
+      "permission": {
+        "read": true
+      }
+    },
+    "_update_time": {
+      "description": "修改时间",
+      "permission": {
+        "read": true
+      }
+    }
+  }
+}

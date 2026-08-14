@@ -7,7 +7,7 @@
     "icon": "el-icon-s-tools",
     "url": "",
     "comment": "系统内置",
-    "sort": 1000,
+    "sort": 1020,
     "enable": true
   },
   {
@@ -89,7 +89,7 @@
     "icon": "el-icon-s-tools",
     "menu_id": "system-uni",
     "name": "系统设置",
-    "sort": 1050
+    "sort": 1010
   },
   {
     "_id": "system-uni-uni-id-files",
@@ -198,8 +198,7 @@
     "menu_id": "system-uni-product-center",
     "name": "产品中心",
     "comment": "产品分类、内容、展示、统计统一管理",
-    "sort": -1,
-    "parent_id": "system-uni"
+    "sort": 1000
   },
   {
     "_id": "system-uni-product-manage",
@@ -228,13 +227,25 @@
   {
     "_id": "system-uni-product-display",
     "sort": 2,
-    "url": "/pages/system/product-display/product-display",
+    "url": "/pages/system/landing-manage/landing-manage",
     "_add_time": 1596416400000,
     "enable": true,
     "icon": "el-icon-picture-outline",
     "menu_id": "system-uni-product-display",
     "name": "展示配置",
     "comment": "配置前端落地页展示内容",
+    "parent_id": "system-uni-product-center"
+  },
+  {
+    "_id": "system-uni-landing-manage",
+    "sort": 2,
+    "url": "/pages/system/landing-manage/landing-manage",
+    "_add_time": 1596416400000,
+    "enable": true,
+    "icon": "el-icon-monitor",
+    "menu_id": "system-uni-landing-manage",
+    "name": "落地页管理",
+    "comment": "管理落地页区块内容和排序",
     "parent_id": "system-uni-product-center"
   },
   {
