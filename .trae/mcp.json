@@ -1,4 +1,18 @@
 {
     "mcpServers": {
+        "llm-vision-mcp": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@me9rez/llm-vision-mcp",
+                "mcp"
+            ],
+            "env": {
+                "API_KEY": "sk-hrquwjqanyvvuicjjuenobwmnxttwrxxthftpysmzikajebj",
+                "BASE_URL": "https://api.siliconflow.cn//v1",
+                "VISION_MODEL": "Qwen/Qwen3-VL-32B-Instruct"
+            }
+        }
     }
 }
