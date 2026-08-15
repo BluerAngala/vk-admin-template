@@ -22,13 +22,7 @@
           :disabled="table1.multipleSelection.length === 0"
           >批量修改</el-button
         >
-        <el-button
-          v-if="isAdmin"
-          type="warning"
-          icon="el-icon-refresh"
-          @click="migrateCustomUsersToPurchased"
-          >执行数据迁移</el-button
-        >
+
       </template>
     </vk-data-table-query>
 
@@ -1443,48 +1437,6 @@ export default {
         });
         }
       });
-    },
-    // 执行数据迁移：将定制用户迁移为已购买用户
-    migrateCustomUsersToPurchased() {
-      if (!that.isAdmin) {
-        vk.toast("只有管理员才能执行数据迁移");
-        return;
-      }
-      vk.confirm(
-        "确定要执行数据迁移吗？\n\n将把现有产品中 custom_user_ids 里的用户ID（除了'all'）迁移到 purchased_user_ids，并从 custom_user_ids 中移除。\n\n此操作不可逆，请确保已备份数据！",
-        "数据迁移确认",
-        "确定执行",
-        "取消",
-        (res) => {
-          if (res.confirm) {
-            vk.callFunction({
-              url: "admin/product/sys/migrateCustomUsersToPurchased",
-              data: {},
-              title: "正在执行数据迁移...",
-              success: (data) => {
-                vk.toast(data.msg || "迁移完成");
-                if (data.data) {
-                  console.log("迁移结果：", data.data);
-                  vk.alert(
-                    `迁移完成！\n\n处理产品数：${data.data.totalProducts}\n迁移产品数：${data.data.migratedProducts}\n迁移用户数：${data.data.totalUsersMigrated}`,
-                    "迁移结果",
-                    "确定",
-                    () => {
-                      // 刷新表格
-                      that.refresh();
-                    }
-                  );
-                } else {
-                  that.refresh();
-                }
-              },
-              fail: (err) => {
-                vk.toast(err.msg || "迁移失败");
-              },
-            });
-          }
-        }
-      );
     },
     // 改变状态
     changeStatus(row) {
