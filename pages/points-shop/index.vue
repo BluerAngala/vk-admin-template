@@ -3,11 +3,7 @@
 		<!-- 页面标题 -->
 		<view class="page-header">
 			<div class="header-content">
-				<h2>购买积分
-					<el-tag v-if="payConfig.store_name" type="success" size="small" style="margin-left: 10px; vertical-align: middle;">
-						{{ payConfig.store_name }}
-					</el-tag>
-				</h2>
+				<h2>购买积分</h2>
 				<p>请按需选择合适的积分套餐，开启您的会员之旅！</p>
 			</div>
 		</view>
