@@ -8,81 +8,59 @@ module.exports = {
 		let { vk, db } = util;
 		let res = { code: 0, msg: '' };
 		
-		// 初始产品数据（积分1:1对应金额，去除时长折扣）
+		// 初始产品数据（price_points/price_months/price_machines 为必填字段）
 		const products = [
 			{
-				product_id: "ai-script-generator",
-				product_name: "AI生成话术",
+				product_id: "demo-software",
+				product_name: "示例软件",
 				product_type: "software",
-				base_price: 50,
-				machine_unit: 1,
-				description: "AI智能生成营销话术，提升转化率",
-				icon: "el-icon-chat-dot-round",
+				price_points: 5,
+				price_months: 1,
+				price_machines: 1,
+				base_price: 5,
+				description: "示例软件产品，仅供测试",
 				status: 1,
-				sort: 10,
-				custom_user_ids: [],
+				custom_user_ids: ["all"],
 				valid_days_options: [
-					{days: 30, label: "月卡(30天)", discount: 1},
-					{days: 90, label: "季卡(90天)", discount: 1},
-					{days: 180, label: "半年卡(180天)", discount: 1},
-					{days: 365, label: "年卡(365天)", discount: 1}
+					{ days: 30, label: "月卡(30天)", discount: 1 },
+					{ days: 90, label: "季卡(90天)", discount: 1 },
+					{ days: 365, label: "年卡(365天)", discount: 1 }
 				],
 				_add_time: Date.now()
 			},
 			{
-				product_id: "jd-screen-helper",
-				product_name: "京东投屏助手",
+				product_id: "demo-plugin",
+				product_name: "示例插件",
 				product_type: "plugin",
-				base_price: 5,
-				machine_unit: 10,
-				description: "京东商品投屏展示助手",
-				icon: "el-icon-monitor",
+				price_points: 10,
+				price_months: 1,
+				price_machines: 1,
+				base_price: 10,
+				description: "示例浏览器插件，仅供测试",
 				status: 1,
-				sort: 20,
-				custom_user_ids: [],
+				custom_user_ids: ["all"],
 				valid_days_options: [
-					{days: 30, label: "月卡(30天)", discount: 1},
-					{days: 90, label: "季卡(90天)", discount: 1},
-					{days: 180, label: "半年卡(180天)", discount: 1},
-					{days: 365, label: "年卡(365天)", discount: 1}
+					{ days: 30, label: "月卡(30天)", discount: 1 },
+					{ days: 90, label: "季卡(90天)", discount: 1 },
+					{ days: 365, label: "年卡(365天)", discount: 1 }
 				],
 				_add_time: Date.now()
 			},
 			{
-				product_id: "general-software",
-				product_name: "通用软件",
-				product_type: "software",
-				base_price: 5,
-				machine_unit: 1,
-				description: "通用型软件授权",
-				icon: "el-icon-s-platform",
+				product_id: "demo-web",
+				product_name: "示例网页服务",
+				product_type: "web",
+				price_points: 3,
+				price_months: 1,
+				price_machines: 1,
+				base_price: 3,
+				description: "示例网页服务，仅供测试",
 				status: 1,
-				sort: 30,
-				custom_user_ids: [],
+				custom_user_ids: ["all"],
 				valid_days_options: [
-					{days: 30, label: "月卡(30天)", discount: 1},
-					{days: 90, label: "季卡(90天)", discount: 1},
-					{days: 180, label: "半年卡(180天)", discount: 1},
-					{days: 365, label: "年卡(365天)", discount: 1}
-				],
-				_add_time: Date.now()
-			},
-			{
-				product_id: "general-plugin",
-				product_name: "通用浏览器插件",
-				product_type: "plugin",
-				base_price: 5,
-				machine_unit: 10,
-				description: "通用型浏览器插件授权",
-				icon: "el-icon-link",
-				status: 1,
-				sort: 40,
-				custom_user_ids: [],
-				valid_days_options: [
-					{days: 30, label: "月卡(30天)", discount: 1},
-					{days: 90, label: "季卡(90天)", discount: 1},
-					{days: 180, label: "半年卡(180天)", discount: 1},
-					{days: 365, label: "年卡(365天)", discount: 1}
+					{ days: 30, label: "月卡(30天)", discount: 1 },
+					{ days: 90, label: "季卡(90天)", discount: 1 },
+					{ days: 365, label: "年卡(365天)", discount: 1 }
 				],
 				_add_time: Date.now()
 			}
