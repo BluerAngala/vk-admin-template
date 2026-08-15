@@ -1,11 +1,11 @@
 <template>
-  <view class="hero" :style="{ background: data.bg_color || '#0a1628' }">
+  <view class="hero">
     <view class="hero__inner">
       <text class="hero__title">{{ data.title || '' }}</text>
       <text class="hero__sub">{{ data.subtitle || '' }}</text>
       <view class="hero__actions">
         <text class="btn btn--primary" @click="handlePrimary">{{ (data.btn_primary || {}).text || '了解更多' }}</text>
-        <text class="btn btn--ghost" @click="handleGhost">{{ (data.btn_ghost || {}).text || '登录后台' }}</text>
+        <text class="btn btn--outline" @click="handleGhost">{{ (data.btn_ghost || {}).text || '登录后台' }}</text>
       </view>
     </view>
   </view>
@@ -35,12 +35,13 @@ export default {
 
 <style lang="scss" scoped>
 .hero {
-  min-height: 100vh;
+  min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 120px 24px 80px;
+  padding: 48px 24px;
+  background: #ffffff;
 
   &__inner {
     max-width: 800px;
@@ -50,7 +51,7 @@ export default {
     display: block;
     font-size: 48px;
     font-weight: 800;
-    color: #ffffff;
+    color: #1e293b;
     line-height: 1.2;
     letter-spacing: -1px;
     white-space: pre-line;
@@ -60,7 +61,7 @@ export default {
   &__sub {
     display: block;
     font-size: 18px;
-    color: rgba(255, 255, 255, 0.6);
+    color: #64748b;
     line-height: 1.6;
     white-space: pre-line;
     margin-bottom: 48px;
@@ -92,13 +93,14 @@ export default {
     }
   }
 
-  &--ghost {
+  &--outline {
     background: transparent;
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.6);
+      background: #3b82f6;
+      color: #ffffff;
     }
   }
 }

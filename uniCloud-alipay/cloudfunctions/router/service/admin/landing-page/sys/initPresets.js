@@ -20,7 +20,6 @@ module.exports = {
 				data: {
 					title: "AI自动化\n商务定制化平台",
 					subtitle: "智能管理，高效运营\n一站式产品授权、卡密管理、积分商城",
-					bg_color: "#0a1628",
 					btn_primary: { text: "了解更多", action: "scroll" },
 					btn_ghost: { text: "登录后台", action: "login" }
 				}
