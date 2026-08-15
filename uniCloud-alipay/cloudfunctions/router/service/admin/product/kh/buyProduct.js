@@ -53,9 +53,19 @@ module.exports = {
 			return { code: -1, msg: '您已经购买过该产品' };
 		}
 		
-	// 计算需要支付的积分（使用购买价格）
-	const pricePoints = product.buy_price || 0;
-	
+	// 计算需要支付的积分（优先使用特殊价格配置）
+	let pricePoints = product.buy_price || 0;
+
+	// 检查用户是否有特殊价格配置
+	if (product.special_price_configs && Array.isArray(product.special_price_configs)) {
+		const userConfig = product.special_price_configs.find(config =>
+			config.user_ids && config.user_ids.includes(userId)
+		);
+		if (userConfig && userConfig.buy_price > 0) {
+			pricePoints = userConfig.buy_price;
+		}
+	}
+
 	// 如果购买价格为0，说明不允许购买
 	if (pricePoints === 0) {
 		return { code: -1, msg: '该产品暂不支持购买' };

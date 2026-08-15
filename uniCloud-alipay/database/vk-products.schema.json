@@ -142,6 +142,32 @@
       "minimum": 0.1,
       "defaultValue": 1
     },
+    "special_price_configs": {
+      "bsonType": "array",
+      "title": "特殊价格配置",
+      "description": "按用户独立配置的特殊价格列表",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "user_ids": {
+            "bsonType": "array",
+            "items": { "bsonType": "string" },
+            "description": "适用的用户ID列表"
+          },
+          "buy_price": {
+            "bsonType": "number",
+            "description": "购买价格（积分）",
+            "minimum": 0
+          },
+          "points_price": {
+            "bsonType": "number",
+            "description": "积分扣除价格（积分/月/机器）",
+            "minimum": 0.1
+          }
+        }
+      },
+      "defaultValue": []
+    },
     "version_logs": {
       "bsonType": "array",
       "title": "版本更新日志",

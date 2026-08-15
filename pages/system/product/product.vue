@@ -534,51 +534,77 @@
 
         <!-- 特殊价格配置自定义插槽 -->
         <template v-slot:special_price_config>
-          <div style="display: flex; gap: 15px; align-items: flex-start; flex-direction: column;">
-            <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-              <span style="color: #606266; white-space: nowrap;">特殊价格：</span>
-              <el-input-number
-                v-model="form1.data.special_price"
-                :min="0.1"
-                :max="999999"
-                :precision="2"
-                :step="0.1"
-                placeholder="请输入特殊价格"
-                style="width: 200px"
-              ></el-input-number>
-              <span style="color: #909399;">积分/月/机器</span>
-            </div>
-            <el-select
-              v-model="form1.data.special_price_user_ids"
-              multiple
-              filterable
-              placeholder="请选择特殊价格用户（可多选）"
-              style="width: 100%"
+          <div class="special-price-configs">
+            <div
+              v-for="(config, index) in form1.data.special_price_configs"
+              :key="index"
+              class="config-item"
             >
-              <el-option disabled value="">───────── 特殊价格用户 ─────────</el-option>
-              <el-option
-                v-for="user in userList"
-                :key="user._id"
-                :label="`${user.nickname || user.username} (${user.username})`"
-                :value="user._id"
-              >
-                <span style="float: left">{{
-                  user.nickname || user.username
-                }}</span>
-                <span style="float: right; color: #8492a6; font-size: 13px">{{
-                  user.username
-                }}</span>
-              </el-option>
-            </el-select>
+              <div class="config-header">
+                <span class="config-title">配置 {{ index + 1 }}</span>
+                <el-button
+                  type="danger"
+                  icon="el-icon-delete"
+                  size="mini"
+                  circle
+                  @click="removeSpecialPriceConfig(index)"
+                ></el-button>
+              </div>
+              <div class="config-body">
+                <el-select
+                  v-model="config.user_ids"
+                  multiple
+                  filterable
+                  placeholder="选择用户"
+                  style="width: 100%; margin-bottom: 10px;"
+                >
+                  <el-option
+                    v-for="user in userList"
+                    :key="user._id"
+                    :label="`${user.nickname || user.username} (${user.username})`"
+                    :value="user._id"
+                  >
+                    <span style="float: left">{{ user.nickname || user.username }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ user.username }}</span>
+                  </el-option>
+                </el-select>
+                <div style="display: flex; gap: 10px;">
+                  <div style="flex: 1;">
+                    <div style="font-size: 12px; color: #909399; margin-bottom: 4px;">购买价格（积分）</div>
+                    <el-input-number
+                      v-model="config.buy_price"
+                      :min="0"
+                      :precision="0"
+                      placeholder="购买价格"
+                      style="width: 100%;"
+                    ></el-input-number>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 12px; color: #909399; margin-bottom: 4px;">积分扣除（积分/月/机器）</div>
+                    <el-input-number
+                      v-model="config.points_price"
+                      :min="0.1"
+                      :precision="2"
+                      :step="0.1"
+                      placeholder="积分价格"
+                      style="width: 100%;"
+                    ></el-input-number>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <el-button
+              type="dashed"
+              icon="el-icon-plus"
+              style="width: 100%; margin-top: 10px;"
+              @click="addSpecialPriceConfig"
+            >
+              添加特殊价格配置
+            </el-button>
           </div>
-          <div style="color: #909399; font-size: 12px; margin-top: 5px">
+          <div style="color: #909399; font-size: 12px; margin-top: 10px;">
             <i class="el-icon-info"></i>
-            <span v-if="!form1.data.special_price_user_ids || form1.data.special_price_user_ids.length === 0" style="color: #909399;">
-              未选择用户=不启用特殊价格
-            </span>
-            <span v-else style="color: #67C23A;">
-              已选择{{ form1.data.special_price_user_ids.length }}位用户=绑定机器数≤1000台时享受{{ form1.data.special_price || 1 }}积分/月/机器
-            </span>
+            为不同用户配置独立的购买价格和积分扣除价格，未配置的用户使用默认价格
           </div>
         </template>
 
@@ -618,9 +644,16 @@
           </div>
         </template>
 
-        <!-- 有效期选项自定义插槽 -->
+        <!-- 卡密收费自定义插槽 -->
         <template v-slot:valid_days_options>
           <div class="valid-days-options">
+            <!-- 表头 -->
+            <div class="option-header">
+              <span class="header-item" style="width: 120px;">有效期（天）</span>
+              <span class="header-item" style="width: 150px; margin-left: 10px;">显示名称</span>
+              <span class="header-item" style="width: 120px; margin-left: 10px;">折扣系数</span>
+              <span class="header-item" style="width: 50px; margin-left: 10px;">操作</span>
+            </div>
             <div
               v-for="(option, index) in form1.data.valid_days_options"
               :key="index"
@@ -635,7 +668,7 @@
               ></el-input-number>
               <el-input
                 v-model="option.label"
-                placeholder="显示名称"
+                placeholder="如：月卡、季卡"
                 style="width: 150px; margin-left: 10px"
               ></el-input>
               <el-input-number
@@ -664,8 +697,12 @@
               @click="addOption"
               style="margin-top: 10px"
             >
-              添加选项
+              添加卡密选项
             </el-button>
+            <div style="color: #909399; font-size: 12px; margin-top: 10px;">
+              <i class="el-icon-info"></i>
+              示例：30天=月卡(1折)，90天=季卡(0.9折)，365天=年卡(0.8折)
+            </div>
           </div>
         </template>
 
@@ -1078,6 +1115,7 @@ export default {
           action: "",
           columns: [
             // ========== 基本信息 ==========
+            { key: "", title: "基本信息", type: "bar-title" },
             {
               key: "product_id",
               title: "产品ID",
@@ -1098,17 +1136,20 @@ export default {
               slot: true,
             },
             {
+              key: "status",
+              title: "状态",
+              type: "radio",
+              data: statusData,
+              defaultValue: 1,
+            },
+            // ========== 产品详情 ==========
+            { key: "", title: "产品详情", type: "bar-title" },
+            {
               key: "product_image",
               title: "产品图",
               type: "image",
               limit: 1,
               tips: "支持jpg/png格式，建议尺寸400x300",
-            },
-            {
-              key: "download_url",
-              title: "下载地址",
-              type: "text",
-              placeholder: "请输入下载地址",
             },
             {
               key: "description",
@@ -1117,18 +1158,19 @@ export default {
               placeholder: "请输入产品描述",
             },
             {
-              key: "status",
-              title: "状态",
-              type: "radio",
-              data: statusData,
-              defaultValue: 1,
+              key: "download_url",
+              title: "下载地址",
+              type: "text",
+              placeholder: "请输入下载地址",
+              tips: "已购买用户可下载的地址",
             },
-            // ========== 收费配置 ==========
             {
-              key: "price_standard",
-              title: "收费标准",
+              key: "version_logs",
+              title: "版本更新日志",
               slot: true,
             },
+            // ========== 收费配置 ==========
+            { key: "", title: "收费配置", type: "bar-title" },
             {
               key: "buy_price",
               title: "购买价格",
@@ -1138,16 +1180,18 @@ export default {
               defaultValue: 0,
             },
             {
-              key: "valid_days_options",
-              title: "有效期选项",
+              key: "price_standard",
+              title: "收费标准",
               slot: true,
             },
             {
-              key: "version_logs",
-              title: "版本更新日志",
+              key: "valid_days_options",
+              title: "卡密收费",
               slot: true,
+              tips: "可选配置，支持按天数+折扣灵活定价",
             },
             // ========== 高级配置 ==========
+            { key: "", title: "高级配置", type: "bar-title" },
             {
               key: "custom_user_ids",
               title: "可见范围",
@@ -1163,7 +1207,6 @@ export default {
               title: "已购买用户",
               slot: true,
             },
-            // ========== 备注信息 ==========
             {
               key: "remark",
               title: "备注",
@@ -1344,8 +1387,9 @@ export default {
           { days: 365, label: "年卡(365天)", discount: 1 },
         ],
         custom_user_ids: ["all"], // 默认为所有人可见
-        special_price: 1, // 特殊价格，默认为1积分/月/机器
-        special_price_user_ids: [], // 特殊价格用户列表
+        special_price: 1, // 特殊价格，默认为1积分/月/机器（兼容旧数据）
+        special_price_user_ids: [], // 特殊价格用户列表（兼容旧数据）
+        special_price_configs: [], // 特殊价格配置（新）
         purchased_user_ids: [], // 已购买用户列表
         version_logs: [], // 版本更新日志
       });
@@ -1377,8 +1421,9 @@ export default {
         status: item.status,
         valid_days_options: item.valid_days_options || [],
         custom_user_ids: item.custom_user_ids || [],
-        special_price: item.special_price || 1, // 特殊价格，默认为1
-        special_price_user_ids: item.special_price_user_ids || [],
+        special_price: item.special_price || 1, // 特殊价格，默认为1（兼容旧数据）
+        special_price_user_ids: item.special_price_user_ids || [], // 兼容旧数据
+        special_price_configs: item.special_price_configs || [], // 特殊价格配置（新）
         purchased_user_ids: item.purchased_user_ids || [],
         version_logs: item.version_logs || [],
       });
@@ -1480,6 +1525,21 @@ export default {
     // 移除有效期选项
     removeOption(index) {
       that.form1.data.valid_days_options.splice(index, 1);
+    },
+    // 添加特殊价格配置
+    addSpecialPriceConfig() {
+      if (!that.form1.data.special_price_configs) {
+        that.$set(that.form1.data, "special_price_configs", []);
+      }
+      that.form1.data.special_price_configs.push({
+        user_ids: [],
+        buy_price: 0,
+        points_price: 1,
+      });
+    },
+    // 移除特殊价格配置
+    removeSpecialPriceConfig(index) {
+      that.form1.data.special_price_configs.splice(index, 1);
     },
     // 添加版本日志
     addVersionLog() {
@@ -2037,8 +2097,24 @@ export default {
   padding: 20px;
 }
 
-/* 有效期选项样式 */
+/* 卡密收费样式 */
 .valid-days-options {
+  .option-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: #e4e7ed;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #606266;
+    font-weight: 500;
+
+    .header-item {
+      text-align: center;
+    }
+  }
+
   .option-item {
     display: flex;
     align-items: center;
@@ -2046,6 +2122,33 @@ export default {
     padding: 10px;
     background: #f5f7fa;
     border-radius: 4px;
+  }
+}
+
+/* 特殊价格配置样式 */
+.special-price-configs {
+  .config-item {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f5f7fa;
+    border-radius: 4px;
+    border: 1px solid #e4e7ed;
+
+    .config-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+
+      .config-title {
+        font-weight: 500;
+        color: #303133;
+      }
+    }
+
+    .config-body {
+      // 内容区域
+    }
   }
 }
 

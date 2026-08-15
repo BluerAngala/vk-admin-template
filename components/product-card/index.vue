@@ -70,9 +70,9 @@
             <span>已购买</span>
             <i class="el-icon-arrow-right"></i>
           </div>
-          <div v-else-if="product.buy_price > 0" class="purchase-block">
+          <div v-else-if="product.user_buy_price > 0 || product.buy_price > 0" class="purchase-block">
             <div class="price-tag">
-              <span class="price-amount">{{ product.buy_price }}</span>
+              <span class="price-amount">{{ product.user_buy_price || product.buy_price }}</span>
               <span class="price-unit">积分</span>
             </div>
             <el-button

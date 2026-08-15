@@ -43,23 +43,35 @@ module.exports = {
 		filteredProducts = filteredProducts.map(product => {
 			// 判断是否为公开产品（包含'all'）
 			const isPublic = product.custom_user_ids && product.custom_user_ids.includes('all');
-			
+
 			// 判断当前用户是否在可见范围列表中（指定用户可见，且不包含'all'）
 			// 指定用户可见：custom_user_ids 包含用户ID，但不包含 'all'
-			const isCustom = userId && product.custom_user_ids && 
+			const isCustom = userId && product.custom_user_ids &&
 			                 product.custom_user_ids.includes(userId) &&
 			                 !product.custom_user_ids.includes('all');
-			
+
 			// 判断用户是否已购买（通过 purchased_user_ids 字段）
-			const isPurchased = userId && product.purchased_user_ids && 
+			const isPurchased = userId && product.purchased_user_ids &&
 			                    Array.isArray(product.purchased_user_ids) &&
 			                    product.purchased_user_ids.includes(userId);
-			
+
+			// 计算用户实际的购买价格（优先使用特殊价格配置）
+			let userBuyPrice = product.buy_price || 0;
+			if (product.special_price_configs && Array.isArray(product.special_price_configs)) {
+				const userConfig = product.special_price_configs.find(config =>
+					config.user_ids && config.user_ids.includes(userId)
+				);
+				if (userConfig && userConfig.buy_price > 0) {
+					userBuyPrice = userConfig.buy_price;
+				}
+			}
+
 			return {
 				...product,
 				is_public: isPublic,
 				is_custom: isCustom,
-				is_purchased: isPurchased
+				is_purchased: isPurchased,
+				user_buy_price: userBuyPrice // 用户实际购买价格
 			};
 		});
 		
