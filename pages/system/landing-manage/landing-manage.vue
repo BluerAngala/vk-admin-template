@@ -435,7 +435,6 @@ export default {
 
   &__sort {
     display: flex;
-    flex-direction: column;
     gap: 2px;
   }
 
