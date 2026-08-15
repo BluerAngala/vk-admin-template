@@ -31,7 +31,8 @@ module.exports = {
 		let option = {
 			scene, //来源客户端传递，表示：使用场景值，用于防止不同功能的验证码混用
 			uniPlatform: platform,
-			isUniAppX
+			isUniAppX,
+			type: "text" // 使用字母数字验证码，而不是计算题
 		}
 		if (isUniAppX) {
 			// HBuilderX4.81+版本起支持svg验证码，注意iOS13以下仍不支持svg

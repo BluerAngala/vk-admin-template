@@ -242,3 +242,31 @@ uni_modules 通过 `package.json` 的 `uni_modules` 字段声明暴露的云函�
 | 请求方式 | `$request()` 或云对象 | `vk.callFunction({ url, data })` |
 | 权限检查 | `$hasPermission()` | `$hasRole()`、`$hasPermission()` |
 | 配置文件 | `admin.config.js` | `app.config.js` |
+
+## ⚠️ 项目初始化必做：修改密码密钥
+
+**文件位置：** `uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center/uni-id/config.json`
+
+```json
+{
+    "passwordSecret": "passwordSecret-demo",  // ← 必须修改
+    "tokenSecret": "tokenSecret-demo",        // ← 必须修改
+    ...
+}
+```
+
+**为什么必须修改：**
+- 默认值是公开的示例密钥，任何人都能知道
+- 如果不修改，攻击者可以用已知密钥伪造用户密码
+- 导致账号安全完全失效
+
+**如何修改：**
+1. 将 `passwordSecret` 改为项目专属的随机字符串（建议 32 位以上）
+2. 将 `tokenSecret` 改为另一个随机字符串
+3. 根据项目名称生成，例如：`"passwordSecret": "your-project-name-2024-secret-key"`
+4. 修改后必须重新部署 router 云函数
+
+**注意事项：**
+- 修改密钥后，已有的用户密码会失效，需要用户重置密码
+- 不同项目使用不同的密钥，避免一个项目被攻破影响其他项目
+- 不要将密钥提交到公开的代码仓库

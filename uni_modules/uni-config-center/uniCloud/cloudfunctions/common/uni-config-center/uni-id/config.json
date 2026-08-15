@@ -1,6 +1,6 @@
 {
-	"passwordSecret": "passwordSecret-demo",
-	"tokenSecret": "tokenSecret-demo",
+	"passwordSecret": "passwordSecret-law-products",
+	"tokenSecret": "tokenSecret-law-products",
 	"tokenExpiresIn": 604800,
 	"tokenExpiresThreshold": 259200,
 	"tokenMaxLimit": 10,

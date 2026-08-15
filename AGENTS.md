@@ -34,6 +34,8 @@ vk-unicloud-admin — Vue 2 + uni-app + uniCloud 管理后台框架。
 
 ### 2. uni_modules 自带的 schema 不要复制到 database 目录
 
+**⚠️ 涉及 database 的任务，必须先检查 `uni_modules/*/uniCloud/database/` 是否已有同名 schema，不要只盯着 `uniCloud-alipay/database/`。**
+
 `uniCloud-alipay/database/` 只放项目自定义的表。如果 `uni_modules/*/uniCloud/database/` 下已有同名 schema，就不要重复放，HBuilderX 会自动链接。
 
 ```text
@@ -116,6 +118,32 @@ uni-app ≠ Vue Web，必须用 uni-app 组件：
 ❌ database/fix-menu.jql                          ← 不可追溯、不可重复执行
 ❌ 直接告诉用户在 JQL 执行器跑命令                 ← 过后就忘了，无法复现
 ```
+
+### 9. 项目初始化必须修改密码密钥
+
+**文件位置：** `uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center/uni-id/config.json`
+
+```json
+{
+    "passwordSecret": "passwordSecret-demo",  // ← 必须修改
+    "tokenSecret": "tokenSecret-demo"         // ← 必须修改
+}
+```
+
+**为什么必须修改：**
+- 默认值是公开的示例密钥，任何人都能知道
+- 不修改会导致账号密码可被伪造，安全完全失效
+
+**如何修改：**
+1. 将 `passwordSecret` 改为项目专属的随机字符串（建议 32 位以上）
+2. 将 `tokenSecret` 改为另一个随机字符串
+3. 根据项目名称生成，例如：`"passwordSecret": "your-project-name-2024-secret-key"`
+4. 修改后必须重新部署 router 云函数
+
+**注意事项：**
+- 修改密钥后，已有的用户密码会失效，需要用户重置密码
+- 不同项目使用不同的密钥，避免一个项目被攻破影响其他项目
+- 不要将密钥提交到公开的代码仓库
 
 ---
 
