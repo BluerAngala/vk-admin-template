@@ -44,7 +44,33 @@ module.exports = {
 
 	// 更新时间
 	updateData._update_time = Date.now();
-	
+
+	// 如果修改了 purchased_user_ids，需要同步 vk-user-products 表
+	if (updateData.purchased_user_ids !== undefined) {
+		// 获取旧的产品数据
+		const oldProduct = await db.collection('vk-products').doc(_id).get();
+		if (oldProduct.data && oldProduct.data.length > 0) {
+			const oldPurchasedUserIds = oldProduct.data[0].purchased_user_ids || [];
+			const newPurchasedUserIds = updateData.purchased_user_ids || [];
+
+			// 找出被移除的用户ID
+			const removedUserIds = oldPurchasedUserIds.filter(uid => !newPurchasedUserIds.includes(uid));
+
+			// 删除被移除用户的购买记录
+			if (removedUserIds.length > 0) {
+				const productProductId = oldProduct.data[0].product_id;
+				for (const uid of removedUserIds) {
+					await db.collection('vk-user-products')
+						.where({
+							user_id: uid,
+							product_record_id: _id
+						})
+						.remove();
+				}
+			}
+		}
+	}
+
 	// 更新产品数据
 	const updateRes = await db.collection('vk-products')
 		.doc(_id)

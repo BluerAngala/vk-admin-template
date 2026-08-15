@@ -1457,6 +1457,7 @@ export default {
         },
         success: () => {
           vk.toast("状态更新成功");
+          that.$store.commit('$user/SET_PRODUCT_LIST', []);
           that.refresh();
         },
         fail: () => {
@@ -1509,6 +1510,7 @@ export default {
     formSuccess() {
       that.form1.props.show = false;
       vk.toast("操作成功");
+      that.$store.commit('$user/SET_PRODUCT_LIST', []);
       that.refresh();
     },
     // 获取图片URL（兼容多种数据格式）
@@ -1664,7 +1666,10 @@ export default {
         row.price_machines = priceMachines;
         row.base_price = basePrice;
         vk.toast('修改成功');
-        
+
+        // 清除产品列表缓存
+        that.$store.commit('$user/SET_PRODUCT_LIST', []);
+
         // 取消编辑状态
         that.cancelCellEdit();
       } catch (err) {
@@ -1729,7 +1734,10 @@ export default {
           row[field] = newValue;
         }
         vk.toast('修改成功');
-        
+
+        // 清除产品列表缓存，确保用户端同步更新
+        that.$store.commit('$user/SET_PRODUCT_LIST', []);
+
         // 取消编辑状态
         that.cancelCellEdit();
       } catch (err) {
@@ -2006,7 +2014,10 @@ export default {
               // 清空选择
               that.table1.multipleSelection = [];
               that.$refs.table1.clearSelection();
-              
+
+              // 清除产品列表缓存
+              that.$store.commit('$user/SET_PRODUCT_LIST', []);
+
               // 刷新表格
               that.refresh();
             } catch (err) {

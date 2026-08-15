@@ -127,16 +127,35 @@ module.exports = {
 			purchased_user_ids: updatedPurchasedUserIds
 		});
 		
-		// 3. 记录购买信息（同时保存 product_id、product_record_id 和 product_name）
-		await transaction.collection('vk-user-products').add({
-			user_id: userId,
-			product_id: product.product_id, // 使用查询到的产品ID
-			product_record_id: product._id, // 产品记录ID（精确标识）
-			product_name: product.product_name, // 产品名称（用于显示和验证）
-			price_paid: pricePoints,
-			buy_time: Date.now(),
-			_add_time: Date.now()
-		});
+		// 3. 记录购买信息（先查后更新，避免重复）
+		const existingRecord = await transaction.collection('vk-user-products')
+			.where({
+				user_id: userId,
+				product_record_id: product._id
+			})
+			.get();
+
+		if (existingRecord.data && existingRecord.data.length > 0) {
+			// 已有记录，更新
+			await transaction.collection('vk-user-products').doc(existingRecord.data[0]._id).update({
+				product_id: product.product_id,
+				product_name: product.product_name,
+				price_paid: pricePoints,
+				buy_time: Date.now(),
+				_update_time: Date.now()
+			});
+		} else {
+			// 新增记录
+			await transaction.collection('vk-user-products').add({
+				user_id: userId,
+				product_id: product.product_id,
+				product_record_id: product._id,
+				product_name: product.product_name,
+				price_paid: pricePoints,
+				buy_time: Date.now(),
+				_add_time: Date.now()
+			});
+		}
 		
 		// 4. 提交事务
 		await transaction.commit();

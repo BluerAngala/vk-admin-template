@@ -29,13 +29,22 @@
 
 				<!-- 我的产品 -->
 				<el-tab-pane label="我的产品" name="products">
-					<product-grid
-						:product-list="productList"
-						:user-info="userInfo"
-						@copy="copyCode"
-						@download="openDownloadUrl"
-						@show-version-logs="showVersionLogs"
-					/>
+					<view v-if="productList.length === 0" class="products-empty">
+						<i class="el-icon-box" style="font-size: 64px; color: #DCDFE6;"></i>
+						<p style="color: #909399; margin-top: 16px;">暂无可用产品</p>
+					</view>
+					<view v-else class="products-grid">
+						<product-card
+							v-for="product in productList"
+							:key="product._id"
+							:product="product"
+							:user-info="userInfo"
+							mode="purchased"
+							@copy="copyCode"
+							@download="openDownloadUrl"
+							@show-version-logs="showVersionLogs"
+						/>
+					</view>
 				</el-tab-pane>
 			</el-tabs>
 		</el-card>
@@ -54,7 +63,7 @@
 import UserCenterHeader from './components/user-center-header.vue';
 import PointsTable from './components/points-table.vue';
 import CardTable from './components/card-table.vue';
-import ProductGrid from './components/product-grid.vue';
+import ProductCard from '@/components/product-card/index.vue';
 import VersionLogDialog from './components/version-log-dialog.vue';
 
 let that;
@@ -65,7 +74,7 @@ export default {
 		UserCenterHeader,
 		PointsTable,
 		CardTable,
-		ProductGrid,
+		ProductCard,
 		VersionLogDialog
 	},
 
@@ -84,7 +93,11 @@ export default {
 	computed: {
 		pointsInfo() { return this.$store.state.$user.pointsInfo; },
 		machineStats() { return this.$store.state.$user.machineStats; },
-		productList() { return this.$store.state.$user.productList; },
+		productList() {
+			const all = this.$store.state.$user.productList || [];
+			// 只显示已购买的产品（定制产品 或 已购买的公开产品）
+			return all.filter(p => p.is_custom || p.is_purchased);
+		},
 	},
 
 	onLoad() {
@@ -225,5 +238,21 @@ export default {
 		height: 100%;
 		overflow: auto;
 	}
+}
+
+/* 产品网格 */
+.products-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 20px;
+	padding: 10px;
+}
+
+.products-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 20px;
 }
 </style>

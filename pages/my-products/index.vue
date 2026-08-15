@@ -14,7 +14,7 @@
         <el-tab-pane name="unpurchased">
           <span slot="label" class="tab-label">
             <i class="el-icon-star-on"></i>
-            精选产品
+            全部产品
             <el-badge :value="unpurchasedProducts.length" :max="99" class="tab-badge" />
           </span>
         </el-tab-pane>
@@ -35,6 +35,7 @@
           v-for="product in displayUnpurchasedProducts"
           :key="product._id"
           :product="product"
+          :user-info="userInfo"
           mode="unpurchased"
           @buy="buyProduct"
           @contact="contactCustomer"
@@ -66,7 +67,9 @@
           v-for="product in displayPurchasedProducts"
           :key="product._id"
           :product="product"
+          :user-info="userInfo"
           mode="purchased"
+          @copy="copyCode"
           @download="downloadProduct"
           @show-version-logs="showVersionLogs"
         />
@@ -131,7 +134,7 @@
 let that;
 let vk = uni.vk;
 
-import ProductCard from './components/ProductCard.vue';
+import ProductCard from '@/components/product-card/index.vue';
 import ServiceQrcode from '@/components/service-qrcode/index.vue';
 
 export default {
@@ -174,15 +177,16 @@ export default {
       serviceDialog: {
         show: false,
       },
+      userInfo: {},
     };
   },
   computed: {
     allProducts() { return this.$store.state.$user.productList || []; },
-    // 未购买的产品列表
+    // 未购买的产品列表（现在显示所有公开产品，包括已购买的）
     unpurchasedProducts() {
       const products = this.productList.filter(product => {
-        // 公开产品且未购买
-        if (product.is_public && !product.is_purchased) {
+        // 公开产品都显示
+        if (product.is_public) {
           return true;
         }
         return false;
@@ -240,10 +244,20 @@ export default {
   onLoad(options = {}) {
     that = this;
     vk = that.vk;
+    that.loadUserInfo();
     that.loadProductCategories();
     that.loadProducts();
   },
   methods: {
+    // 加载用户信息
+    loadUserInfo() {
+      vk.callFunction({
+        url: "user/kh/getMyUserInfo",
+        success: (data) => {
+          that.userInfo = data.userInfo || {};
+        }
+      });
+    },
     // 加载产品分类数据
     loadProductCategories() {
       vk.callFunction({
@@ -270,7 +284,7 @@ export default {
     async loadProducts() {
       that.loading = true;
       try {
-        await that.$store.dispatch('$user/loadProductList');
+        await that.$store.dispatch('$user/loadProductList', { force: true });
         that.productList = [...that.allProducts];
       } catch (err) {
         vk.toast(err.msg || "加载失败");
@@ -361,6 +375,13 @@ export default {
         });
         // #endif
       }
+    },
+    // 复制文本
+    copyCode(text) {
+      uni.setClipboardData({
+        data: text,
+        success: () => vk.toast("复制成功")
+      });
     },
     // 显示版本日志
     showVersionLogs(product) {
