@@ -136,21 +136,7 @@
 		</view>
 
 		<!-- 客服二维码弹窗 -->
-		<vk-data-dialog v-model="serviceDialog.show" title="联系客服" width="400px" :close-on-click-modal="true">
-			<view class="service-dialog-content">
-				<div class="qrcode-container">
-					<img src="static/service-qrcode.png" class="qrcode-img" />
-				</div>
-				<p class="service-tips">
-					<i class="el-icon-info"></i>
-					请使用QQ扫描二维码添加客服
-				</p>
-				<p class="service-time">工作时间：9:00 - 21:00</p>
-			</view>
-			<template v-slot:footer="{ close }">
-				<el-button @click="close">关闭</el-button>
-			</template>
-		</vk-data-dialog>
+		<ServiceQrcode :show.sync="serviceDialog.show" work-time="9:00 - 21:00" />
 
 		<!-- 支付加载遮罩 -->
 		<view class="payment-mask" v-if="paymentLoading">
@@ -187,10 +173,12 @@
 
 <script>
 import * as paymentService from '@/common/services/payment.js';
+import ServiceQrcode from '@/components/service-qrcode/index.vue';
 
 let vk = uni.vk;
 
 export default {
+	components: { ServiceQrcode },
 	data() {
 		return {
 			// userPoints -> computed
@@ -779,43 +767,6 @@ export default {
 	&:hover {
 		transform: translateY(-8px);
 		box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
-	}
-}
-
-/* 客服二维码弹窗样式 */
-.service-dialog-content {
-	text-align: center;
-	padding: 20px;
-	
-	.qrcode-container {
-		background: #f5f7fa;
-		border-radius: 12px;
-		padding: 20px;
-		margin-bottom: 20px;
-		display: inline-block;
-		
-		.qrcode-img {
-			width: 250px;
-			height: 250px;
-			display: block;
-			border-radius: 8px;
-		}
-	}
-	
-	.service-tips {
-		color: #409EFF;
-		font-size: 14px;
-		margin-bottom: 10px;
-		
-		i {
-			margin-right: 5px;
-		}
-	}
-	
-	.service-time {
-		color: #909399;
-		font-size: 13px;
-		margin: 0;
 	}
 }
 

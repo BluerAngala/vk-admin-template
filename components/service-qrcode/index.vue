@@ -1,14 +1,13 @@
 <template>
-  <el-dialog
-    :visible.sync="visible"
+  <vk-data-dialog
+    v-model="visible"
     title="联系客服"
     width="400px"
     :close-on-click-modal="true"
-    @close="$emit('close')"
   >
     <view class="service-dialog-content">
       <div class="qrcode-container">
-        <img :src="qrcodeSrc" class="qrcode-img" />
+        <img :src="qrcodeImg" class="qrcode-img" />
       </div>
       <p class="service-tips">
         <i class="el-icon-info"></i>
@@ -16,10 +15,16 @@
       </p>
       <p class="service-time">工作时间：{{ workTime }}</p>
     </view>
-  </el-dialog>
+    <template v-slot:footer="{ close }">
+      <el-button @click="close">关闭</el-button>
+    </template>
+  </vk-data-dialog>
 </template>
 
 <script>
+// 用 require 引入图片，这是 uni-app 自定义组件中引用本地图片的正确方式
+const defaultQrcode = require('@/static/service-qrcode.png');
+
 export default {
   name: 'ServiceQrcode',
   props: {
@@ -29,7 +34,7 @@ export default {
     },
     qrcodeSrc: {
       type: String,
-      default: 'static/service-qrcode.png',
+      default: '',
     },
     tips: {
       type: String,
@@ -48,6 +53,9 @@ export default {
       set(val) {
         this.$emit('update:show', val);
       },
+    },
+    qrcodeImg() {
+      return this.qrcodeSrc || defaultQrcode;
     },
   },
 };
