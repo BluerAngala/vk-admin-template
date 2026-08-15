@@ -44,14 +44,42 @@ vk-unicloud-admin — Vue 2 + uni-app + uniCloud 管理后台框架。
 ❌ uniCloud-alipay/database/uni-id-roles.schema.json          ← uni-id-pages 已有
 ```
 
-常见归属速查：
+**发现重复文件时的处理方法：**
 
-| 表名 | 来源 | database 需要放？ |
-|---|---|---|
-| `opendb-verify-codes` | uni-captcha | ❌ |
-| `opendb-tempdata`、`opendb-open-data` | uni-id-pages | ❌ |
-| `uni-id-users`、`uni-id-roles`、`uni-id-permissions` | uni-id | ✅ schema + init_data |
-| `opendb-admin-menus`、`vk-*` | vk-unicloud-admin | ✅ |
+1. 先对比内容差异：`diff uniCloud-alipay/database/xxx.schema.json uni_modules/*/uniCloud/database/xxx.schema.json`
+2. 以 `uni_modules` 版本为准（权限配置更完整、字段名更规范）
+3. 删除 `uniCloud-alipay/database/` 中的重复文件
+
+**常见需要删除的重复文件（如果存在于 uniCloud-alipay/database）：**
+
+```bash
+# uni-open-bridge-common 已有
+rm uniCloud-alipay/database/opendb-open-data.*
+
+# uni-id-pages 已有
+rm uniCloud-alipay/database/opendb-tempdata.*
+rm uniCloud-alipay/database/uni-id-log.*
+rm uniCloud-alipay/database/uni-id-permissions.*
+rm uniCloud-alipay/database/uni-id-roles.*
+
+# uni-captcha 已有
+rm uniCloud-alipay/database/opendb-verify-codes.*
+```
+
+**完整归属速查：**
+
+| 表名 | 来源 | database 需要放？ | db_init.json 需要放？ |
+|---|---|---|---|
+| `opendb-verify-codes` | uni-captcha | ❌ | ❌ |
+| `opendb-tempdata`、`opendb-open-data` | uni-id-pages / uni-open-bridge-common | ❌ | ❌ |
+| `uni-id-log` | uni-id-pages | ❌ | ❌ |
+| `uni-id-users` | uni-id | ✅ schema + init_data | ✅ 初始管理员 |
+| `uni-id-roles` | uni-id-pages | ❌ | ✅ 初始角色数据 |
+| `uni-id-permissions` | uni-id-pages | ❌ | ✅ 初始权限数据 |
+| `opendb-admin-menus`、`opendb-admin-log` | vk-unicloud-admin | ✅ | ✅ |
+| `vk-*` | 项目自定义 | ✅ | ✅ |
+
+**⚠️ db_init.json 同样不能包含 uni_modules 已有的表定义，否则部署时会重复创建 schema 文件。**
 
 ### 3. pages_plugs/ 不要放自定义页面
 
@@ -111,10 +139,13 @@ uni-app ≠ Vue Web，必须用 uni-app 组件：
 
 ### 8. 本地临时修改数据库用云函数，不用 JQL
 
-开发调试中需要临时修改数据库时，禁止在 JQL 执行器里手动跑命令或写 `.jql` 文件。统一放在 `uniCloud-alipay/cloudfunctions/mytest/` 下新建云函数，方便复现和复用。
+开发调试中需要临时修改数据库时，禁止在 JQL 执行器里手动跑命令或写 `.jql` 文件。统一放在 `uniCloud-alipay/cloudfunctions/` 下新建云函数，方便复现和复用。
+
+**⚠️ 云函数目录必须直接在 `cloudfunctions/` 下，不要嵌套子目录！**
 
 ```text
-✅ cloudfunctions/mytest/fix-menu-sort/index.js  ← 可复现、可复用
+✅ cloudfunctions/fix-menu-sort/index.js          ← 可复现、可复用
+❌ cloudfunctions/mytest/fix-menu-sort/index.js   ← 目录嵌套，HBuilderX 无法识别
 ❌ database/fix-menu.jql                          ← 不可追溯、不可重复执行
 ❌ 直接告诉用户在 JQL 执行器跑命令                 ← 过后就忘了，无法复现
 ```
