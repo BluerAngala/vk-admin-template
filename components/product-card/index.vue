@@ -65,9 +65,10 @@
 
         <!-- 未购买：购买操作区 -->
         <div v-if="mode === 'unpurchased'" class="card-action">
-          <div v-if="product.is_purchased" class="purchased-block">
+          <div v-if="product.is_purchased" class="purchased-block" @click.stop="$emit('go-purchased', product)">
             <i class="el-icon-circle-check"></i>
             <span>已购买</span>
+            <i class="el-icon-arrow-right"></i>
           </div>
           <div v-else-if="product.buy_price > 0" class="purchase-block">
             <div class="price-tag">
@@ -245,7 +246,7 @@ export default {
 /* ========== 容器 ========== */
 .product-card-wrapper {
   position: relative;
-  height: 480px;
+  height: 400px;
   perspective: 1000px;
   cursor: pointer;
 
@@ -490,9 +491,21 @@ export default {
     color: #67c23a;
     font-size: 14px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #e1f3d8;
+    }
 
     i {
       font-size: 16px;
+    }
+
+    .el-icon-arrow-right {
+      margin-left: auto;
+      font-size: 14px;
+      color: #95d475;
     }
   }
 

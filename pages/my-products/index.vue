@@ -40,6 +40,7 @@
           @buy="buyProduct"
           @contact="contactCustomer"
           @show-version-logs="showVersionLogs"
+          @go-purchased="goToPurchasedProduct"
         />
       </view>
       <view v-if="unpurchasedProducts.length > pageSize" class="pagination-wrapper">
@@ -68,6 +69,7 @@
           :key="product._id"
           :product="product"
           :user-info="userInfo"
+          :data-product-id="product._id"
           mode="purchased"
           @copy="copyCode"
           @download="downloadProduct"
@@ -327,6 +329,29 @@ export default {
         duration: 300,
       });
     },
+    // 跳转到已购买产品
+    goToPurchasedProduct(product) {
+      // 切换到我的产品标签页
+      that.activeTab = 'purchased';
+
+      // 计算产品在已购买列表中的页码
+      const index = that.purchasedProducts.findIndex(p => p._id === product._id);
+      if (index !== -1) {
+        const page = Math.ceil((index + 1) / that.pageSize);
+        that.purchasedCurrentPage = page;
+
+        // 延迟滚动到产品位置
+        that.$nextTick(() => {
+          const productEl = document.querySelector(`[data-product-id="${product._id}"]`);
+          if (productEl) {
+            productEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // 添加高亮效果
+            productEl.classList.add('highlight');
+            setTimeout(() => productEl.classList.remove('highlight'), 2000);
+          }
+        });
+      }
+    },
     // 购买产品
     buyProduct(product) {
       vk.confirm(
@@ -518,6 +543,17 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
   margin-top: 16px;
+
+  // 高亮效果
+  .highlight {
+    animation: highlight-pulse 2s ease;
+  }
+}
+
+@keyframes highlight-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(103, 194, 58, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(103, 194, 58, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(103, 194, 58, 0); }
 }
 
 .empty-state {
