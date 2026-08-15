@@ -23,14 +23,7 @@
     "url": "/pages/points-shop/index",
     "sort": 300
   },
-  {
-    "menu_id": "my-tickets",
-    "name": "我的工单",
-    "comment": "提交工单、查看工单进度",
-    "icon": "el-icon-s-order",
-    "url": "/pages/ticket/list",
-    "sort": 400
-  },
+
   {
     "menu_id": "invite-center",
     "name": "邀请中心",

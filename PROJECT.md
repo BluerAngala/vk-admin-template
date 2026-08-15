@@ -30,7 +30,6 @@
 | **卡密管理** | 核心功能。卡密生成、批量操作、续费、机器统计、公开校验接口 | `pages/card-manage/` | `admin/card/{kh,sys,pub}/*` | `vk-card-key` |
 | **产品管理** | 产品 CRUD、用户购买、初始化产品数据 | `pages/system/product/` `pages/my-products/` | `admin/product/{kh,sys}/*` | `vk-products` `vk-user-products` |
 | **积分系统** | 积分充值、余额查询、消费记录、支付配置 | `pages/points-shop/` | `admin/points/{kh,sys}/*` | `vk-user-points` `vk-points-log` `vk-pay-config` `vk-recharge-orders` |
-| **工单系统** | 用户提工单、管理员回复、状态管理 | `pages/ticket/{list,create,detail}` | `admin/ticket/{kh,sys}/*` | `vk-tickets` `vk-ticket-replies` |
 | **邀请返利** | 邀请链接、返利记录、多级返利配置 | `pages/invite-center/` `pages/invite-center/rebate-history` | `admin/rebate/sys/*` + `invite/*` | `vk-invite-rebate-log` |
 | **黑名单** | 用户黑名单管理 | 管理后台内 | `admin/blacklist/sys/*` | `vk-blacklist` |
 
@@ -58,7 +57,6 @@
 | `system/rebate-config/list` | 返利配置 | `admin/rebate/sys/*` |
 | `system/points-pay-config/list` | 积分支付配置 | `admin/points/sys/*` |
 | `system/rebate-records/list` | 返利记录 | `admin/rebate/sys/*` |
-| `system/ticket/list` | 工单管理（管理员） | `admin/ticket/sys/*` |
 
 ### 运维工具（`pages_plugs/system-uni/`）
 
@@ -106,8 +104,6 @@
 | `vk-recharge-orders` | 充值订单 | `trade_no`(unique), `user_id`, `status` |
 | `vk-pay-orders` | 支付订单 | 来自 uni-pay |
 | `vk-pay-config` | 支付配置 | 来自 uni-pay |
-| `vk-tickets` | 工单 | `user_id`, `title`, `status` |
-| `vk-ticket-replies` | 工单回复 | `ticket_id`, `user_id` |
 | `vk-invite-rebate-log` | 邀请返利记录 | `inviter_id`, `invitee_id`, `order_id`(unique) |
 | `vk-blacklist` | 黑名单 | `user_id`(unique) |
 | `vk-global-data` | 全局键值 | `key`(unique) |
@@ -129,7 +125,6 @@
 ├── 产品列表 → /pages/my-products/index
 ├── 卡密管理 → /pages/card-manage/index
 ├── 购买积分 → /pages/points-shop/index
-├── 我的工单 → /pages/ticket/list
 ├── 个人中心 → /pages/user-center/index
 ├── 邀请中心 → /pages/invite-center/index
 ├── 使用帮助 → /pages/docs/help/index

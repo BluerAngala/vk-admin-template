@@ -116,24 +116,6 @@
       }
     },
     {
-      "path": "pages/ticket/list",
-      "style": {
-        "navigationBarTitleText": "我的工单"
-      }
-    },
-    {
-      "path": "pages/ticket/create",
-      "style": {
-        "navigationBarTitleText": "提交工单"
-      }
-    },
-    {
-      "path": "pages/ticket/detail",
-      "style": {
-        "navigationBarTitleText": "工单详情"
-      }
-    }
-  ,{
     "path": "uni_modules/uni-id-pages/pages/register/register",
     "style": {
         "navigationBarTitleText": "注册"
@@ -234,12 +216,7 @@
         "navigationBarTitleText": "实名认证"
     }
 },
-{
-    "path": "pages/system/ticket/ticket",
-    "style": {
-        "navigationBarTitleText": "工单管理"
-    }
-},
+
 {
     "path": "pages/system/rebate-config/rebate-config",
     "style": {
