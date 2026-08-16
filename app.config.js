@@ -52,7 +52,6 @@ export default {
 		 */
 		mode: 2,
 		list: [
-			"/pages/landing/*",
 			"/pages/login/*",
 			"/pages_template/element/*",
 			"/pages_template/components/form/*",
