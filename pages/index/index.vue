@@ -41,8 +41,7 @@
 		</view>
 
 		<!-- 右下角公告弹窗开始 -->
-		<transition name="slide-up">
-			<view class="announcement-popup" v-if="dialog.show">
+		<view class="announcement-popup" v-if="dialog.show">
 				<view class="popup-header">
 					<span class="popup-title">🎉 系统公告</span>
 					<i class="el-icon-close popup-close" @click="dialog.show = false"></i>
@@ -71,8 +70,7 @@
 					<el-button size="small" @click="handleDontShowToday">今日不再提示</el-button>
 					<el-button type="primary" size="small" @click="dialog.show = false">我知道了</el-button>
 				</view>
-			</view>
-		</transition>
+		</view>
 		<!-- 右下角公告弹窗结束 -->
 
 		<!-- 页面内容结束 -->
@@ -781,18 +779,6 @@ export default {
 	justify-content: flex-end;
 	gap: 10px;
 	background: #fafafa;
-}
-
-/* 弹窗动画 */
-.slide-up-enter-active,
-.slide-up-leave-active {
-	transition: all 0.3s ease;
-}
-
-.slide-up-enter,
-.slide-up-leave-to {
-	opacity: 0;
-	transform: translateY(20px);
 }
 
 /* 响应式布局 */
