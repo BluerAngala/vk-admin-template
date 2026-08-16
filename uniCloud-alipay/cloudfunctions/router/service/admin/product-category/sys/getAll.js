@@ -14,7 +14,16 @@ module.exports = {
 			.orderBy('sort', 'asc')
 			.get();
 
-		res.data = result.data || [];
+		// 按 value 去重（防止数据库有重复记录）
+		const seen = new Set();
+		const list = [];
+		for (const item of (result.data || [])) {
+			if (!seen.has(item.value)) {
+				seen.add(item.value);
+				list.push(item);
+			}
+		}
+		res.data = list;
 
 		return res;
 	}
